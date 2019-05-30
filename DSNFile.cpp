@@ -31,7 +31,7 @@ DSNFile::~DSNFile()
 
 wstring trim(wstring str)
 {
-	int start=0,end=str.size();
+	size_t start=0,end=str.size();
 	wstring trimmed;
 	
 	for(wchar_t c:str)

@@ -29,7 +29,7 @@ typedef struct Element_t
 {
 	wstring Name;
 	wstring Body;
-	int	Depth;
+	int	Depth=0;
 
 	struct Element_t* FindSub(wstring Str)
 	{

@@ -4,66 +4,28 @@
 
 MSWDSNFile::MSWDSNFile(wstring a) : DSNFile(a)
 {
-
-
-
+	scalef=0;
+	sheight=0;
+	swidth=0;
+	gxoff=0;
+	gyoff=0;
+	gscale=0;
+	graphics=0;
 };
 
 
 extern void AddToLog(const std::wstring FileName);
 
 
-void MSWDSNFile::DrawBlob(const wstring &Str)
-{
-	Pen	pen(Color(255,0,0,255));
 
-	unsigned int curfield=0,nextdelimter;
-
-	nextdelimter=Str.find_first_of(' ',curfield);
-	wstring cname=Str.substr(0,nextdelimter);
-	curfield=nextdelimter+1;
-
-	nextdelimter=Str.find_first_of(' ',curfield);
-	double px=stod(Str.substr(curfield,nextdelimter));
-	curfield=nextdelimter+1;
-
-	nextdelimter=Str.find_first_of(' ',curfield);
-	double py=stod(Str.substr(curfield,nextdelimter));
-	curfield=nextdelimter+1;
-
-	nextdelimter=Str.find_first_of(' ',curfield);
-	wstring cforb=Str.substr(curfield,nextdelimter);
-	curfield=nextdelimter+1;
-
-	nextdelimter=Str.find_first_of(' ',curfield);
-	double angle=stod(Str.substr(curfield,nextdelimter));
-	curfield=nextdelimter+1;
-
-	vertex	xy,xy1;
-
-	xy1.x=(px-gxoff)/gscale;
-	xy1.y=(py-gyoff)/gscale;
-
-
-	xy.x=(xy1.x*scalef);
-	xy.y=(xy1.y*scalef);
-
-
-	graphics->DrawLine(&pen,(int)xy.x,(int)xy.y,(int)xy.x+1,(int)xy.y);
-	graphics->DrawLine(&pen,(int)xy.x+1,(int)xy.y,(int)xy.x+1,(int)xy.y+1);
-	graphics->DrawLine(&pen,(int)xy.x+1,(int)xy.y+1,(int)xy.x,(int)xy.y+1);
-	graphics->DrawLine(&pen,(int)xy.x,(int)xy.y+1,(int)xy.x,(int)xy.y);
-}
-
-
-void MSWDSNFile::DrawLine(Pen& pen,double x1,double y1,double x2,double y2)
+void MSWDSNFile::DrawLine(Pen& pen,vertex &a,vertex &b)
 {
 	vertex	xy1,xy2;
 
-	xy1.x=(x1-gxoff)/gscale;
-	xy1.y=(y1-gyoff)/gscale;
-	xy2.x=(x2-gxoff)/gscale;
-	xy2.y=(y2-gyoff)/gscale;
+	xy1.x=(a.x-gxoff)/gscale;
+	xy1.y=(a.y-gyoff)/gscale;
+	xy2.x=(b.x-gxoff)/gscale;
+	xy2.y=(b.y-gyoff)/gscale;
 
 	int ix1,iy1,ix2,iy2;
 
@@ -75,13 +37,13 @@ void MSWDSNFile::DrawLine(Pen& pen,double x1,double y1,double x2,double y2)
 	graphics->DrawLine(&pen,ix1,iy1,ix2,iy2);
 }
 
-void MSWDSNFile::DrawCircle(Pen& pen,double x1,double y1,double radius)
+void MSWDSNFile::DrawCircle(Pen& pen,vertex& a,double radius)
 {
 	vertex	xy1;
 	int ix1,iy1,r2;
 
-	xy1.x=(x1-gxoff)/gscale;
-	xy1.y=(y1-gyoff)/gscale;
+	xy1.x=(a.x-gxoff)/gscale;
+	xy1.y=(a.y-gyoff)/gscale;
 	double r1=radius/gscale;
 
 
@@ -89,26 +51,28 @@ void MSWDSNFile::DrawCircle(Pen& pen,double x1,double y1,double radius)
 	iy1=(int)(sheight-(xy1.y*scalef));
 	r2=(int)(r1*scalef);
 
+	Color PColour;
+	pen.GetColor(&PColour);
 
-	Brush* brush=new SolidBrush(Color(255,250,0,0));
+	Brush* brush=new SolidBrush(PColour);
 
 	graphics->FillEllipse(brush,ix1,iy1,r2,r2);
 }
 
 
-void MSWDSNFile::DrawRectangle(Pen& pen,double x1,double y1,double x2,double y2)
+void MSWDSNFile::DrawRectangle(Pen& pen,vertex& a,vertex& b)
 {
 	vertex	xy1;
 	int ix1,iy1;
 
-	xy1.x=(x1-gxoff)/gscale;
-	xy1.y=(y1-gyoff)/gscale;
+	xy1.x=(a.x-gxoff)/gscale;
+	xy1.y=(a.y-gyoff)/gscale;
 
 	ix1=(int)(xy1.x*scalef);
 	iy1=(int)(sheight-(xy1.y*scalef));
 
-	int w=(int)((scalef*(x2-x1))/gscale);
-	int h=(int)((scalef*(-y2+y1))/gscale);
+	int w=(int)((scalef*(b.x-a.x))/gscale);
+	int h=(int)((scalef*(-b.y+a.y))/gscale);
 
 	if(w<0)
 	{
@@ -122,19 +86,21 @@ void MSWDSNFile::DrawRectangle(Pen& pen,double x1,double y1,double x2,double y2)
 		h=-h;
 	}
 
-	Brush* brush=new SolidBrush(Color(255,250,0,0));
+	Color PColour;
+	pen.GetColor(&PColour);
+
+	Brush* brush=new SolidBrush(PColour);
 
 	graphics->FillRectangle(brush,ix1,iy1,w,h);
 }
 
 
-void MSWDSNFile::DrawPaths(const double x1,const double y1,const Element& path)
+void MSWDSNFile::DrawPaths(Pen& pen,const vertex &xyin,const Element& path,double angle)
 {
-	unsigned int curfield,nextdelimter,aperture_width;
+	size_t curfield,nextdelimter,linewidth;
 	std::vector<vertex> vertices;
 
 	vertex	xy;
-	Pen	pen(Color(255,0,255,255));
 
 	curfield=0;
 
@@ -143,9 +109,10 @@ void MSWDSNFile::DrawPaths(const double x1,const double y1,const Element& path)
 	curfield=nextdelimter+1;
 
 	nextdelimter=path.Body.find_first_of(' ',curfield);
-	aperture_width=stoi(path.Body.substr(curfield,nextdelimter));
+	linewidth=stoi(path.Body.substr(curfield,nextdelimter));
 	curfield=nextdelimter+1;
 
+	pen.SetWidth((REAL)((linewidth/gscale)*scalef));
 
 	while(nextdelimter!=wstring::npos)
 	{
@@ -157,35 +124,38 @@ void MSWDSNFile::DrawPaths(const double x1,const double y1,const Element& path)
 		xy.y=stod(path.Body.substr(curfield,nextdelimter));
 		curfield=nextdelimter+1;
 
+		xy.Rotate(angle);
+		xy+=xyin;
+
 		vertices.push_back(xy);
 	}
 
 	for(unsigned int i=0; i<vertices.size()-1; i++)
 	{
-		DrawLine(pen,vertices[i].x+x1,vertices[i].y+y1,vertices[i+1].x+x1,vertices[i+1].y+y1);
+		DrawLine(pen,vertices[i],vertices[i+1]);
 	}
 }
 
-#define PI 3.14159265
 
-void MSWDSNFile::DrawComponentImage(const Element& Image,double inx1,double iny1,double angle)
+
+void MSWDSNFile::DrawComponentImage(const Element& Image,vertex inxy,double angle)
 {
-	unsigned int curfield,nextdelimter;
+	size_t curfield,nextdelimter;
 		
-	double	aperture_width;
-	vertex	pinoffset,xy;
+	double	linewidth;
+	vertex	xy;
 	std::vector<vertex> vertices;
-
-	Pen	pen(Color(255,0,0,255));
-
-	double cangle=cos(angle*PI/180.0);
-	double sangle=sin(angle*PI/180.0);
+	double AngleComp;
 
 	for(auto const& ImageEl:Image.SubElements)
 	{
 		vertices.clear();
 		if(wstringicmp(ImageEl.Name,wstring(L"outline"))==0)
 		{
+			Pen	pen(Color(255,0,0,255));
+			pen.SetStartCap(LineCapRound);
+			pen.SetEndCap(LineCapRound);
+
 			for(auto const& OutlineEl:ImageEl.SubElements)
 			{
 				if(wstringicmp(OutlineEl.Name,wstring(L"path"))==0)
@@ -197,7 +167,7 @@ void MSWDSNFile::DrawComponentImage(const Element& Image,double inx1,double iny1
 					curfield=nextdelimter+1;
 
 					nextdelimter=OutlineEl.Body.find_first_of(' ',curfield);
-					aperture_width=stod(OutlineEl.Body.substr(curfield,nextdelimter));
+					linewidth=stod(OutlineEl.Body.substr(curfield,nextdelimter));
 					curfield=nextdelimter+1;
 
 					while(nextdelimter!=wstring::npos)
@@ -210,26 +180,28 @@ void MSWDSNFile::DrawComponentImage(const Element& Image,double inx1,double iny1
 						xy.y=stod(OutlineEl.Body.substr(curfield,nextdelimter));
 						curfield=nextdelimter+1;
 
-						vertices.push_back(xy);
+						xy.Rotate(angle);
+
+						vertices.push_back(xy+inxy);
 					}
 
-
+					pen.SetWidth((REAL)((linewidth/gscale)*scalef));
 
 					for(unsigned int i=0; i<vertices.size()-1; i++)
 					{
-						double x1=vertices[i].x*cangle-vertices[i].y*sangle;
-						double y1=vertices[i].x*sangle+vertices[i].y*cangle;
-
-						double x2=vertices[i+1].x*cangle-vertices[i+1].y*sangle;
-						double y2=vertices[i+1].x*sangle+vertices[i+1].y*cangle;
-
-						DrawLine(pen,inx1+x1,iny1+y1,x2+inx1,y2+iny1);
+						DrawLine(pen,vertices[i],vertices[i+1]);
 					}
 				}
 			}
 		}
 		else if(wstringicmp(ImageEl.Name,wstring(L"pin"))==0)
 		{
+			vertex	pinoffset;
+
+			Pen	pen(Color(255,0,128,255));
+			pen.SetStartCap(LineCapRound);
+			pen.SetEndCap(LineCapRound);
+
 			curfield=0;
 
 			nextdelimter=ImageEl.Body.find_first_of(' ',curfield);
@@ -247,6 +219,11 @@ void MSWDSNFile::DrawComponentImage(const Element& Image,double inx1,double iny1
 			nextdelimter=ImageEl.Body.find_first_of(' ',curfield);
 			pinoffset.y=stod(ImageEl.Body.substr(curfield,nextdelimter));
 			curfield=nextdelimter+1;
+
+			if(ImageEl.SubElements.size())
+			{
+				AngleComp=stod(ImageEl.SubElements[0].Body);
+			}
 			
 
 			Element* library,* padstack;
@@ -273,8 +250,12 @@ void MSWDSNFile::DrawComponentImage(const Element& Image,double inx1,double iny1
 									double radius=stod(Shape.Body.substr(curfield,nextdelimter));
 									curfield=nextdelimter+1;
 
+									vertex temp;
 
-									DrawCircle(pen,inx1+pinoffset.x-radius/2,iny1+pinoffset.y+radius/2,radius);
+									temp.x=inxy.x+pinoffset.x-radius/2;
+									temp.y=inxy.y+pinoffset.y+radius/2;
+
+									DrawCircle(pen,temp,radius);
 								}
 								else if(wstringicmp(Shape.Name,wstring(L"rect"))==0)
 								{
@@ -300,20 +281,18 @@ void MSWDSNFile::DrawComponentImage(const Element& Image,double inx1,double iny1
 									xy2.y=stod(Shape.Body.substr(curfield,nextdelimter));
 									curfield=nextdelimter+1;
 
-									double x1=pinoffset.x*cangle-pinoffset.y*sangle;
-									double y1=pinoffset.x*sangle+pinoffset.y*cangle;
+									vertex temp1=pinoffset.RotateA(angle);
+									vertex temp2=xy1.RotateA(angle);
+									vertex temp3=xy2.RotateA(angle);
 
-									double x2=xy1.x*cangle-xy1.y*sangle;
-									double y2=xy1.x*sangle+xy1.y*cangle;
+									vertex tempa=inxy+temp1+temp2;
+									vertex tempb=inxy+temp1+temp3;
 
-									double x3=xy2.x*cangle-xy2.y*sangle;
-									double y3=xy2.x*sangle+xy2.y*cangle;
-
-									DrawRectangle(pen,inx1+x1+x2,iny1+y1+y2,inx1+x1+x3,iny1+y1+y3);
+									DrawRectangle(pen,tempa,tempb);
 								}
 								else if(wstringicmp(Shape.Name,wstring(L"path"))==0)
 								{
-									DrawPaths(inx1,iny1,Shape);
+									DrawPaths(pen,inxy+pinoffset,Shape,angle+AngleComp);
 								}
 								else
 								{
@@ -326,12 +305,60 @@ void MSWDSNFile::DrawComponentImage(const Element& Image,double inx1,double iny1
 
 						}
 					}
-//					DrawComponentOfType(placement,*image);
 				}
 			}
 		}
 		else if(wstringicmp(ImageEl.Name,wstring(L"keepout"))==0)
 		{
+			Pen	pen(Color(255,0,255,255));
+			pen.SetStartCap(LineCapRound);
+			pen.SetEndCap(LineCapRound);
+			
+			curfield=0;
+
+			for(auto const& Shape:ImageEl.SubElements)
+			{
+				vertex offset;
+				if(wstringicmp(Shape.Name,wstring(L"circle"))==0)
+				{
+					nextdelimter=Shape.Body.find_first_of(' ',curfield);
+					wstring side=Shape.Body.substr(curfield,nextdelimter);
+					curfield=nextdelimter+1;
+
+					nextdelimter=Shape.Body.find_first_of(' ',curfield);
+					double radius=stod(Shape.Body.substr(curfield,nextdelimter));
+					curfield=nextdelimter+1;
+
+					if(nextdelimter!=wstring::npos)
+					{
+						nextdelimter=Shape.Body.find_first_of(' ',curfield);
+						offset.x=stod(Shape.Body.substr(curfield,nextdelimter));
+						curfield=nextdelimter+1;
+
+						nextdelimter=Shape.Body.find_first_of(' ',curfield);
+						offset.y=stod(Shape.Body.substr(curfield,nextdelimter));
+						curfield=nextdelimter+1;
+
+						offset.Rotate(angle);
+					}
+					else
+					{
+						offset.x=0;
+						offset.y=0;
+					}
+
+					vertex temp;
+
+					temp.x=inxy.x+offset.x-radius/2;
+					temp.y=inxy.y+offset.y+radius/2;
+
+					DrawCircle(pen,temp,radius);
+				}
+				else
+				{
+					AddToLog(L"TO BE DONE:"+Shape.Name+L" Keepout not handled.");
+				}
+			}
 		}
 		else
 		{
@@ -342,20 +369,22 @@ void MSWDSNFile::DrawComponentImage(const Element& Image,double inx1,double iny1
 
 void MSWDSNFile::DrawComponentOfType(const Element &placement,const Element &Image)
 {
+	vertex pxy;
+
 	for(auto const& place:placement.SubElements)
 	{
-		unsigned int curfield=0,nextdelimter;
+		size_t curfield=0,nextdelimter;
 
 		nextdelimter=place.Body.find_first_of(' ',curfield);
 		wstring cname=place.Body.substr(0,nextdelimter);
 		curfield=nextdelimter+1;
 
 		nextdelimter=place.Body.find_first_of(' ',curfield);
-		double px=stod(place.Body.substr(curfield,nextdelimter));
+		pxy.x=stod(place.Body.substr(curfield,nextdelimter));
 		curfield=nextdelimter+1;
 
 		nextdelimter=place.Body.find_first_of(' ',curfield);
-		double py=stod(place.Body.substr(curfield,nextdelimter));
+		pxy.y=stod(place.Body.substr(curfield,nextdelimter));
 		curfield=nextdelimter+1;
 
 		nextdelimter=place.Body.find_first_of(' ',curfield);
@@ -366,13 +395,13 @@ void MSWDSNFile::DrawComponentOfType(const Element &placement,const Element &Ima
 		double angle=stod(place.Body.substr(curfield,nextdelimter));
 		curfield=nextdelimter+1;
 
-		DrawComponentImage(Image,px,py,angle);
+		DrawComponentImage(Image,pxy,angle);
 	}
 }
 
 void MSWDSNFile::DrawPCBOutline(const Element &path)
 {
-	unsigned int curfield,nextdelimter,aperture_width;
+	size_t curfield,nextdelimter,aperture_width;
 	std::vector<vertex> vertices;
 	double xscale,yscale;
 
@@ -444,7 +473,7 @@ void MSWDSNFile::DrawPCBOutline(const Element &path)
 
 	for(unsigned int i=0; i<vertices.size()-1; i++)
 	{
-		DrawLine(pen,vertices[i].x,vertices[i].y,vertices[i+1].x,vertices[i+1].y);
+		DrawLine(pen,vertices[i],vertices[i+1]);
 	}
 }
 
@@ -497,6 +526,16 @@ void MSWDSNFile::Paint(HDC hdc)
 						DrawComponentOfType(placement,*image);
 					}
 				}
+			}
+		}
+	}
+	placements=Root.FindSub(L"network");
+	if(placements)
+	{
+		for(auto const& placement:placements->SubElements)
+		{
+			if(wstringicmp(placement.Name,wstring(L"net"))==0)
+			{
 			}
 		}
 	}

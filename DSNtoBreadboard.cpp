@@ -273,7 +273,7 @@ HRESULT BasicFileSave(HWND hWnd,std::wstring& File)
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-	HRESULT hr=-1;
+	LRESULT hr=-1;
 
 	std::wstring szFile;
 
