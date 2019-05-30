@@ -1,7 +1,5 @@
 #include "MSWDSNFile.h"
 
-
-
 MSWDSNFile::MSWDSNFile(wstring a) : DSNFile(a)
 {
 	scalef=0;
@@ -13,10 +11,7 @@ MSWDSNFile::MSWDSNFile(wstring a) : DSNFile(a)
 	graphics=0;
 };
 
-
 extern void AddToLog(const std::wstring FileName);
-
-
 
 void MSWDSNFile::DrawLine(Pen& pen,vertex &a,vertex &b)
 {
@@ -95,49 +90,6 @@ void MSWDSNFile::DrawRectangle(Pen& pen,vertex& a,vertex& b)
 }
 
 
-void MSWDSNFile::DrawPaths(Pen& pen,const vertex &xyin,const Element& path,double angle)
-{
-	size_t curfield,nextdelimter,linewidth;
-	std::vector<vertex> vertices;
-
-	vertex	xy;
-
-	curfield=0;
-
-	nextdelimter=path.Body.find_first_of(' ',curfield);
-	wstring layer_id=path.Body.substr(0,nextdelimter);
-	curfield=nextdelimter+1;
-
-	nextdelimter=path.Body.find_first_of(' ',curfield);
-	linewidth=stoi(path.Body.substr(curfield,nextdelimter));
-	curfield=nextdelimter+1;
-
-	pen.SetWidth((REAL)((linewidth/gscale)*scalef));
-
-	while(nextdelimter!=wstring::npos)
-	{
-		nextdelimter=path.Body.find_first_of(' ',curfield);
-		xy.x=stod(path.Body.substr(curfield,nextdelimter));
-		curfield=nextdelimter+1;
-
-		nextdelimter=path.Body.find_first_of(' ',curfield);
-		xy.y=stod(path.Body.substr(curfield,nextdelimter));
-		curfield=nextdelimter+1;
-
-		xy.Rotate(angle);
-		xy+=xyin;
-
-		vertices.push_back(xy);
-	}
-
-	for(unsigned int i=0; i<vertices.size()-1; i++)
-	{
-		DrawLine(pen,vertices[i],vertices[i+1]);
-	}
-}
-
-
-
 void MSWDSNFile::DrawComponentImage(const Element& Image,vertex inxy,double angle)
 {
 	size_t curfield,nextdelimter;
@@ -149,7 +101,7 @@ void MSWDSNFile::DrawComponentImage(const Element& Image,vertex inxy,double angl
 
 	for(auto const& ImageEl:Image.SubElements)
 	{
-		vertices.clear();
+
 		if(wstringicmp(ImageEl.Name,wstring(L"outline"))==0)
 		{
 			Pen	pen(Color(255,0,0,255));
@@ -161,24 +113,25 @@ void MSWDSNFile::DrawComponentImage(const Element& Image,vertex inxy,double angl
 				if(wstringicmp(OutlineEl.Name,wstring(L"path"))==0)
 				{
 					curfield=0;
+					vertices.clear();
 
 					nextdelimter=OutlineEl.Body.find_first_of(' ',curfield);
 					wstring layer_id=OutlineEl.Body.substr(0,nextdelimter);
-					curfield=nextdelimter+1;
+					curfield=OutlineEl.Body.find_first_not_of(' ',nextdelimter);
 
 					nextdelimter=OutlineEl.Body.find_first_of(' ',curfield);
-					linewidth=stod(OutlineEl.Body.substr(curfield,nextdelimter));
-					curfield=nextdelimter+1;
+					linewidth=stod(OutlineEl.Body.substr(curfield,nextdelimter-curfield));
+					curfield=OutlineEl.Body.find_first_not_of(' ',nextdelimter);
 
 					while(nextdelimter!=wstring::npos)
 					{
 						nextdelimter=OutlineEl.Body.find_first_of(' ',curfield);
-						xy.x=stod(OutlineEl.Body.substr(curfield,nextdelimter));
-						curfield=nextdelimter+1;
+						xy.x=stod(OutlineEl.Body.substr(curfield,nextdelimter-curfield));
+						curfield=OutlineEl.Body.find_first_not_of(' ',nextdelimter);
 
 						nextdelimter=OutlineEl.Body.find_first_of(' ',curfield);
-						xy.y=stod(OutlineEl.Body.substr(curfield,nextdelimter));
-						curfield=nextdelimter+1;
+						xy.y=stod(OutlineEl.Body.substr(curfield,nextdelimter-curfield));
+						curfield=OutlineEl.Body.find_first_not_of(' ',nextdelimter);
 
 						xy.Rotate(angle);
 
@@ -205,26 +158,29 @@ void MSWDSNFile::DrawComponentImage(const Element& Image,vertex inxy,double angl
 			curfield=0;
 
 			nextdelimter=ImageEl.Body.find_first_of(' ',curfield);
-			wstring name=ImageEl.Body.substr(0,nextdelimter);
-			curfield=nextdelimter+1;
+			wstring name=ImageEl.Body.substr(0,nextdelimter-curfield);
+			curfield=ImageEl.Body.find_first_not_of(' ',nextdelimter);
 
 			nextdelimter=ImageEl.Body.find_first_of(' ',curfield);
-			wstring dimension_unit=ImageEl.Body.substr(curfield,nextdelimter);
-			curfield=nextdelimter+1;
+			wstring dimension_unit=ImageEl.Body.substr(curfield,nextdelimter-curfield);
+			curfield=ImageEl.Body.find_first_not_of(' ',nextdelimter);
 
 			nextdelimter=ImageEl.Body.find_first_of(' ',curfield);
-			pinoffset.x=stod(ImageEl.Body.substr(curfield,nextdelimter));
-			curfield=nextdelimter+1;
+			pinoffset.x=stod(ImageEl.Body.substr(curfield,nextdelimter-curfield));
+			curfield=ImageEl.Body.find_first_not_of(' ',nextdelimter);
 
 			nextdelimter=ImageEl.Body.find_first_of(' ',curfield);
-			pinoffset.y=stod(ImageEl.Body.substr(curfield,nextdelimter));
-			curfield=nextdelimter+1;
+			pinoffset.y=stod(ImageEl.Body.substr(curfield,nextdelimter-curfield));
+			curfield=ImageEl.Body.find_first_not_of(' ',nextdelimter);
 
 			if(ImageEl.SubElements.size())
 			{
 				AngleComp=stod(ImageEl.SubElements[0].Body);
 			}
-			
+			else
+			{
+				AngleComp=0;
+			}
 
 			Element* library,* padstack;
 
@@ -240,20 +196,23 @@ void MSWDSNFile::DrawComponentImage(const Element& Image,vertex inxy,double angl
 						{ 
 							for(auto const& Shape:Shape.SubElements)
 							{
+								curfield=0;
 								if(wstringicmp(Shape.Name,wstring(L"circle"))==0)
 								{
 									nextdelimter=Shape.Body.find_first_of(' ',curfield);
-									wstring side=Shape.Body.substr(curfield,nextdelimter);
-									curfield=nextdelimter+1;
+									wstring side=Shape.Body.substr(curfield,nextdelimter-curfield);
+									curfield=Shape.Body.find_first_not_of(' ',nextdelimter);
 
 									nextdelimter=Shape.Body.find_first_of(' ',curfield);
-									double radius=stod(Shape.Body.substr(curfield,nextdelimter));
-									curfield=nextdelimter+1;
+									double radius=stod(Shape.Body.substr(curfield,nextdelimter-curfield));
+									curfield=Shape.Body.find_first_not_of(' ',nextdelimter);
 
 									vertex temp;
 
-									temp.x=inxy.x+pinoffset.x-radius/2;
-									temp.y=inxy.y+pinoffset.y+radius/2;
+									vertex temp1=pinoffset.RotateA(angle);
+
+									temp.x=inxy.x+temp1.x-radius/2;
+									temp.y=inxy.y+temp1.y+radius/2;
 
 									DrawCircle(pen,temp,radius);
 								}
@@ -262,28 +221,28 @@ void MSWDSNFile::DrawComponentImage(const Element& Image,vertex inxy,double angl
 									vertex xy1,xy2;
 
 									nextdelimter=Shape.Body.find_first_of(' ',curfield);
-									wstring side=Shape.Body.substr(curfield,nextdelimter);
-									curfield=nextdelimter+1;
+									wstring side=Shape.Body.substr(curfield,nextdelimter-curfield);
+									curfield=Shape.Body.find_first_not_of(' ',nextdelimter);
 
 									nextdelimter=Shape.Body.find_first_of(' ',curfield);
-									xy1.x=stod(Shape.Body.substr(curfield,nextdelimter));
-									curfield=nextdelimter+1;
+									xy1.x=stod(Shape.Body.substr(curfield,nextdelimter-curfield));
+									curfield=Shape.Body.find_first_not_of(' ',nextdelimter);
 
 									nextdelimter=Shape.Body.find_first_of(' ',curfield);
-									xy1.y=stod(Shape.Body.substr(curfield,nextdelimter));
-									curfield=nextdelimter+1;
+									xy1.y=stod(Shape.Body.substr(curfield,nextdelimter-curfield));
+									curfield=Shape.Body.find_first_not_of(' ',nextdelimter);
 
 									nextdelimter=Shape.Body.find_first_of(' ',curfield);
-									xy2.x=stod(Shape.Body.substr(curfield,nextdelimter));
-									curfield=nextdelimter+1;
+									xy2.x=stod(Shape.Body.substr(curfield,nextdelimter-curfield));
+									curfield=Shape.Body.find_first_not_of(' ',nextdelimter);
 
 									nextdelimter=Shape.Body.find_first_of(' ',curfield);
-									xy2.y=stod(Shape.Body.substr(curfield,nextdelimter));
-									curfield=nextdelimter+1;
+									xy2.y=stod(Shape.Body.substr(curfield,nextdelimter-curfield));
+									curfield=Shape.Body.find_first_not_of(' ',nextdelimter);
 
 									vertex temp1=pinoffset.RotateA(angle);
-									vertex temp2=xy1.RotateA(angle);
-									vertex temp3=xy2.RotateA(angle);
+									vertex temp2=xy1.RotateA(angle+AngleComp);
+									vertex temp3=xy2.RotateA(angle+AngleComp);
 
 									vertex tempa=inxy+temp1+temp2;
 									vertex tempb=inxy+temp1+temp3;
@@ -292,7 +251,45 @@ void MSWDSNFile::DrawComponentImage(const Element& Image,vertex inxy,double angl
 								}
 								else if(wstringicmp(Shape.Name,wstring(L"path"))==0)
 								{
-									DrawPaths(pen,inxy+pinoffset,Shape,angle+AngleComp);
+									size_t curfield,nextdelimter,linewidth;
+									std::vector<vertex> vertices;
+
+									vertex	xy;
+
+									curfield=0;
+
+									nextdelimter=Shape.Body.find_first_of(' ',curfield);
+									wstring layer_id=Shape.Body.substr(0,nextdelimter);
+									curfield=Shape.Body.find_first_not_of(' ',nextdelimter);
+
+									nextdelimter=Shape.Body.find_first_of(' ',curfield);
+									linewidth=stoi(Shape.Body.substr(curfield,nextdelimter-curfield));
+									curfield=Shape.Body.find_first_not_of(' ',nextdelimter);
+
+									pen.SetWidth((REAL)((linewidth/gscale)* scalef));
+
+									while(nextdelimter!=wstring::npos)
+									{
+										nextdelimter=Shape.Body.find_first_of(' ',curfield);
+										xy.x=stod(Shape.Body.substr(curfield,nextdelimter-curfield));
+										curfield=Shape.Body.find_first_not_of(' ',nextdelimter);
+
+										nextdelimter=Shape.Body.find_first_of(' ',curfield);
+										xy.y=stod(Shape.Body.substr(curfield,nextdelimter-curfield));
+										curfield=Shape.Body.find_first_not_of(' ',nextdelimter);
+
+										vertex temp1=pinoffset.RotateA(angle);
+										vertex temp2=xy.RotateA(angle+AngleComp);
+
+										vertex tempa=inxy+temp1+temp2;
+
+										vertices.push_back(tempa);
+									}
+
+									for(unsigned int i=0; i<vertices.size()-1; i++)
+									{
+										DrawLine(pen,vertices[i],vertices[i+1]);
+									}
 								}
 								else
 								{
@@ -322,22 +319,22 @@ void MSWDSNFile::DrawComponentImage(const Element& Image,vertex inxy,double angl
 				if(wstringicmp(Shape.Name,wstring(L"circle"))==0)
 				{
 					nextdelimter=Shape.Body.find_first_of(' ',curfield);
-					wstring side=Shape.Body.substr(curfield,nextdelimter);
-					curfield=nextdelimter+1;
+					wstring side=Shape.Body.substr(curfield,nextdelimter-curfield);
+					curfield=Shape.Body.find_first_not_of(' ',nextdelimter);
 
 					nextdelimter=Shape.Body.find_first_of(' ',curfield);
-					double radius=stod(Shape.Body.substr(curfield,nextdelimter));
-					curfield=nextdelimter+1;
+					double radius=stod(Shape.Body.substr(curfield,nextdelimter-curfield));
+					curfield=Shape.Body.find_first_not_of(' ',nextdelimter);
 
 					if(nextdelimter!=wstring::npos)
 					{
 						nextdelimter=Shape.Body.find_first_of(' ',curfield);
-						offset.x=stod(Shape.Body.substr(curfield,nextdelimter));
-						curfield=nextdelimter+1;
+						offset.x=stod(Shape.Body.substr(curfield,nextdelimter-curfield));
+						curfield=Shape.Body.find_first_not_of(' ',nextdelimter);
 
 						nextdelimter=Shape.Body.find_first_of(' ',curfield);
-						offset.y=stod(Shape.Body.substr(curfield,nextdelimter));
-						curfield=nextdelimter+1;
+						offset.y=stod(Shape.Body.substr(curfield,nextdelimter-curfield));
+						curfield=Shape.Body.find_first_not_of(' ',nextdelimter);
 
 						offset.Rotate(angle);
 					}
@@ -377,23 +374,23 @@ void MSWDSNFile::DrawComponentOfType(const Element &placement,const Element &Ima
 
 		nextdelimter=place.Body.find_first_of(' ',curfield);
 		wstring cname=place.Body.substr(0,nextdelimter);
-		curfield=nextdelimter+1;
+		curfield=place.Body.find_first_not_of(' ',nextdelimter);
 
 		nextdelimter=place.Body.find_first_of(' ',curfield);
-		pxy.x=stod(place.Body.substr(curfield,nextdelimter));
-		curfield=nextdelimter+1;
+		pxy.x=stod(place.Body.substr(curfield,nextdelimter-curfield));
+		curfield=place.Body.find_first_not_of(' ',nextdelimter);
 
 		nextdelimter=place.Body.find_first_of(' ',curfield);
-		pxy.y=stod(place.Body.substr(curfield,nextdelimter));
-		curfield=nextdelimter+1;
+		pxy.y=stod(place.Body.substr(curfield,nextdelimter-curfield));
+		curfield=place.Body.find_first_not_of(' ',nextdelimter);
 
 		nextdelimter=place.Body.find_first_of(' ',curfield);
-		wstring cforb=place.Body.substr(curfield,nextdelimter);
-		curfield=nextdelimter+1;
+		wstring cforb=place.Body.substr(curfield,nextdelimter-curfield);
+		curfield=place.Body.find_first_not_of(' ',nextdelimter);
 
 		nextdelimter=place.Body.find_first_of(' ',curfield);
-		double angle=stod(place.Body.substr(curfield,nextdelimter));
-		curfield=nextdelimter+1;
+		double angle=stod(place.Body.substr(curfield,nextdelimter-curfield));
+		curfield=place.Body.find_first_not_of(' ',nextdelimter);
 
 		DrawComponentImage(Image,pxy,angle);
 	}
@@ -421,19 +418,18 @@ void MSWDSNFile::DrawPCBOutline(const Element &path)
 	curfield=nextdelimter+1;
 
 	nextdelimter=path.Body.find_first_of(' ',curfield);
-	aperture_width=stoi(path.Body.substr(curfield,nextdelimter));
-	curfield=nextdelimter+1;
-
+	aperture_width=stoi(path.Body.substr(curfield,nextdelimter-curfield));
+	curfield=path.Body.find_first_not_of(' ',nextdelimter);
 
 	while(nextdelimter!=wstring::npos)
 	{
 		nextdelimter=path.Body.find_first_of(' ',curfield);
-		xy.x=stod(path.Body.substr(curfield,nextdelimter));
-		curfield=nextdelimter+1;
+		xy.x=stod(path.Body.substr(curfield,nextdelimter-curfield));
+		curfield=path.Body.find_first_not_of(' ',nextdelimter);
 
 		nextdelimter=path.Body.find_first_of(' ',curfield);
-		xy.y=stod(path.Body.substr(curfield,nextdelimter));
-		curfield=nextdelimter+1;
+		xy.y=stod(path.Body.substr(curfield,nextdelimter-curfield));
+		curfield=path.Body.find_first_not_of(' ',nextdelimter);
 
 		vertices.push_back(xy);
 
@@ -486,6 +482,8 @@ void MSWDSNFile::Paint(HDC hdc)
 	Element *placements;
 	Element* library,*image;
 
+	double AngleComp;
+
 	RECT    rcCli;
 
 	graphics = new Graphics(hdc);
@@ -517,6 +515,11 @@ void MSWDSNFile::Paint(HDC hdc)
 		{
 			if(wstringicmp(placement.Name,wstring(L"component"))==0)
 			{
+				if(placement.Body==L"ACE5SMT:78XXL")
+				{
+					AngleComp=0;
+				}
+
 				library=Root.FindSub(L"library");
 				if(library)
 				{

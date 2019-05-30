@@ -73,7 +73,6 @@ private:
 	void DrawComponentOfType(const Element& Part,const Element& Image);
 	void DrawPCBOutline(const Element& path);
 
-	void DrawPaths(Pen& pen,const vertex &xyin,const Element& path,double angle);	
 	void DrawLine(Pen &pen,vertex & a,vertex & b);
 	void DrawCircle(Pen& pen,vertex& a,double radius);
 	void DrawRectangle(Pen& pen,vertex& a,vertex& b);
