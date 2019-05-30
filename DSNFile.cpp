@@ -29,6 +29,29 @@ DSNFile::~DSNFile()
 }
 
 
+wstring trim(wstring str)
+{
+	int start=0,end=str.size();
+	wstring trimmed;
+	
+	for(wchar_t c:str)
+	{
+		if(!isspace(c))
+			break;
+		start++;
+	}
+	
+	for(;end>start;)
+	{
+		if(!isspace(str[end-1]))
+			break;
+		end--;
+	}
+
+	trimmed=str.substr(start,end);
+	return trimmed;
+}
+
 
 DSNReturn DSNFile::ReadElement(Element &Current)
 {
@@ -63,7 +86,7 @@ DSNReturn DSNFile::ReadElement(Element &Current)
 		}
 		else 
 		{
-			if(c=='\"' && Current.Name!=L"string_quote")
+			if(c=='\"' && wstringicmp(Current.Name,wstring(L"string_quote")))
 			{
 				NotInQuotes=!NotInQuotes;
 			}
@@ -71,6 +94,8 @@ DSNReturn DSNFile::ReadElement(Element &Current)
 			SpaceCount=0;
 		};
 	}
+	Current.Body=trim(Current.Body);
+	Current.Name=trim(Current.Name);
 	Depth--;
 
 
@@ -137,9 +162,6 @@ DSNReturn DSNFile::DeleteElement(Element& Current)
 	return SUCCESS;
 }
 
-
-
-
 DSNReturn DSNFile::Parse()
 {
 	Depth=0;
@@ -169,8 +191,6 @@ DSNReturn DSNFile::FileOut(wstring Name)
 
 	return SUCCESS;
 }
-
-
 
 
 

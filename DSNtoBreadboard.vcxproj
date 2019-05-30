@@ -154,12 +154,14 @@
     <ClInclude Include="DSNFile.h" />
     <ClInclude Include="DSNtoBreadboard.h" />
     <ClInclude Include="framework.h" />
+    <ClInclude Include="MSWDSNFile.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="DSNFile.cpp" />
     <ClCompile Include="DSNtoBreadboard.cpp" />
+    <ClCompile Include="MSWDSNFile.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="DSNtoBreadboard.rc" />

@@ -12,6 +12,13 @@
 #include "DSNtoBreadboard.h"
 #include "DSNFile.h"
 
+#include "MSWDSNFile.h"
+
+#include <gdiplus.h>
+using namespace Gdiplus;
+#pragma comment (lib,"Gdiplus.lib")
+
+
 #define MAX_LOADSTRING 100
 
 // Global Variables:
@@ -26,7 +33,7 @@ LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
 
 
-DSNFile	*DSNFileIn=0;
+MSWDSNFile	*DSNFileIn=0;
 
 
 int		DListLen;
@@ -34,6 +41,38 @@ std::wstring* DList[1000];
 
 #define	MAXFILENAME	260
 
+
+
+
+VOID OnPaint(HDC hdc)
+{
+	if(hdc)
+	{
+		if(DSNFileIn!=0)
+		{
+			DSNFileIn->Paint(hdc);
+		}
+
+		for(int i=0; i<DListLen; i++)
+		{
+			RECT	rc;
+
+			rc.top=i*20;
+			rc.bottom=rc.top+20;
+			rc.left=0;
+			rc.right=1000;
+
+
+			DrawText(hdc,DList[i]->c_str(),
+				-1,
+				&rc,
+				DT_VCENTER|DT_LEFT
+			);
+		}
+	}
+
+
+}
 
 void AddToLog(const std::wstring FileName)
 {
@@ -54,6 +93,13 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     UNREFERENCED_PARAMETER(lpCmdLine);
 
     // TODO: Place code here.
+   // Initialize GDI+.
+	GdiplusStartupInput gdiplusStartupInput;
+	ULONG_PTR           gdiplusToken;
+
+	GdiplusStartup(&gdiplusToken,&gdiplusStartupInput,NULL);
+
+
 
     // Initialize global strings
     LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
@@ -250,9 +296,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				{	
 					try
 					{
-						AddToLog(szFile);
-						DSNFileIn=new DSNFile(szFile);
-						AddToLog(L"Parse OK");
+//						AddToLog(szFile);
+						DSNFileIn=new MSWDSNFile(szFile);
+//						AddToLog(L"Parse OK");
 					}
 					catch(int e)
 					{
@@ -351,28 +397,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             PAINTSTRUCT ps;
             HDC hdc = BeginPaint(hWnd, &ps);
 
-
-			if(hdc)
-			{ 
-				for(int i=0; i<DListLen; i++)
-				{
-					RECT	rc;
-
-					rc.top=i*20;
-					rc.bottom=rc.top+20;
-					rc.left=0;
-					rc.right=1000;
-
-
-					DrawText(hdc,DList[i]->c_str(),
-						-1,
-						&rc,
-						DT_VCENTER|DT_LEFT
-					);
-				}
-			}
-
-
+			OnPaint(hdc);
 
             // TODO: Add any drawing code that uses hdc here...
             EndPaint(hWnd, &ps);

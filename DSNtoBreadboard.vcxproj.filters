@@ -30,12 +30,18 @@
     <ClInclude Include="DSNFile.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="MSWDSNFile.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="DSNtoBreadboard.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="DSNFile.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MSWDSNFile.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -23,11 +23,45 @@ typedef enum
 } DSNExceptions;
 
 
+#define wstringicmp(a,b) _wcsicmp(a.c_str(),b.c_str())
+
 typedef struct Element_t
 {
 	wstring Name;
 	wstring Body;
 	int	Depth;
+
+	struct Element_t* FindSub(wstring Str)
+	{
+		Element *Ret=0;
+
+		for(unsigned int i=0; i<SubElements.size(); i++)
+		{
+			if(wstringicmp(SubElements[i].Name,Str)==0)
+			{
+				Ret=&SubElements[i];
+				break;
+			}
+		}
+		return Ret;
+	};
+
+
+	struct Element_t* FindSub(wstring Str,wstring Body)
+	{
+		Element* Ret=0;
+
+		for(unsigned int i=0; i<SubElements.size(); i++)
+		{
+			if(wstringicmp(SubElements[i].Name,Str)==0 && wstringicmp(SubElements[i].Body,Body)==0)
+			{
+				Ret=&SubElements[i];
+				break;
+			}
+		}
+		return Ret;
+	};
+
 
 	std::vector<struct Element_t> SubElements;
 
@@ -44,7 +78,7 @@ public:
 	DSNReturn FileOut(wstring File);
 protected:
 
-private:
+
 	DSNReturn Parse();
 	DSNReturn ReadElement(Element &Current);
 	DSNReturn WriteElement(Element& Current);
@@ -57,5 +91,11 @@ private:
 	Element Root;
 
 	wstring OpenFileName;
+
+	Element *Get(wstring a,wstring b,wstring c);
+
+private:
+
+
 };
 
