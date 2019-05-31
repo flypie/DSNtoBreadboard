@@ -16,6 +16,7 @@
 
 #include <gdiplus.h>
 using namespace Gdiplus;
+
 #pragma comment (lib,"Gdiplus.lib")
 
 
@@ -36,10 +37,27 @@ INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
 MSWDSNFile	*DSNFileIn=0;
 
 
-int		DListLen;
-std::wstring* DList[1000];
 
 #define	MAXFILENAME	260
+
+
+HDC GetPrinterDC(HWND Hwnd)
+{
+
+	HDC hdc;
+	// Initialize a PRINTDLG structure's size and set the PD_RETURNDC flag set the Owner flag to hwnd.
+	// The PD_RETURNDC flag tells the dialog to return a printer device context.
+	PRINTDLG pd={ 0 };
+	pd.lStructSize=sizeof(pd);
+	pd.hwndOwner=Hwnd;
+	pd.Flags=PD_RETURNDC;
+
+	// Retrieves the printer DC
+	PrintDlg(&pd);
+	hdc=pd.hDC;
+	return hdc;
+
+}
 
 
 
@@ -74,14 +92,38 @@ VOID OnPaint(HDC hdc)
 
 }
 
-void AddToLog(const std::wstring FileName)
-{
-	if(!DList[DListLen])
-	{
-		DList[DListLen]=new std::wstring;
-	}
+#define NUM 1000
 
-	*DList[DListLen++]+=FileName;
+VOID OnPrint(HWND hWnd)
+{
+	int	cxpage,cypage;
+	HDC prn;
+	RECT rc;
+
+	static DOCINFO di={ sizeof(DOCINFO), TEXT("DSNtoBreadBoard : Printing...") };
+
+	GetClientRect(hWnd,&rc);
+
+	prn=GetPrinterDC(hWnd); // Get Printer Device Context
+
+	cxpage=GetDeviceCaps(prn,HORZRES);
+	cypage=GetDeviceCaps(prn,VERTRES);
+
+	StartDoc(prn,&di);
+
+	StartPage(prn);
+	SetMapMode(prn,MM_ISOTROPIC);
+	SetWindowExtEx(prn,cxpage,cypage,NULL);
+	SetViewportExtEx(prn,cxpage,cypage,NULL);
+	SetViewportOrgEx(prn,0,0,NULL);
+
+	OnPaint(prn);
+
+ 	EndPage(prn);
+
+	EndDoc(prn);
+
+	DeleteDC(prn);
 }
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
@@ -279,61 +321,35 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
     switch (message)
     {
-    case WM_COMMAND:
-        {
-            int wmId = LOWORD(wParam);
-            // Parse the menu selections:
-            switch (wmId)
-            {
-            case IDM_ABOUT:
-                DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
-                break;
+		case WM_COMMAND:
+		{
+			int wmId=LOWORD(wParam);
+			// Parse the menu selections:
+			switch(wmId)
+			{
+			case IDM_ABOUT:
+				DialogBox(hInst,MAKEINTRESOURCE(IDD_ABOUTBOX),hWnd,About);
+				break;
 
-            case ID_FILE_OPENFILE:
-                hr=BasicFileOpen(hWnd,szFile);
+			case ID_FILE_OPENFILE:
+				if(DSNFileIn)
+				{
+					delete DSNFileIn;
+					DSNFileIn=0;
+				}
+
+				hr=BasicFileOpen(hWnd,szFile);
 
 				if(hr==S_OK)
-				{	
+				{
 					try
 					{
-//						AddToLog(szFile);
 						DSNFileIn=new MSWDSNFile(szFile);
-//						AddToLog(L"Parse OK");
 					}
 					catch(int e)
 					{
 						switch(e)
 						{
-							case DSNExceptions::FILEOPENFAILED:
-								cout<<"An exception occurred. Exception Nr. "<<e<<'\n';
-								break;
-
-							case DSNExceptions::FORMATERROR:
-								cout<<"An exception occurred. Exception Nr. "<<e<<'\n';
-								break;
-
-							default:
-								cout<<"An exception occurred. Exception Nr. "<<e<<'\n';
-								break;
-						}
-					}
-				}
-
-				RedrawWindow(hWnd,NULL,NULL,RDW_ERASE|RDW_FRAME|RDW_INVALIDATE|RDW_ALLCHILDREN);
-
-                break;
-				
-
-			case ID_FILE_SAVEFILE:
-				try
-				{
-					DSNFileIn->FileOut(L"");
-					AddToLog(L"Write OK");
-				}
-				catch(int e)
-				{
-					switch(e)
-					{
 						case DSNExceptions::FILEOPENFAILED:
 							cout<<"An exception occurred. Exception Nr. "<<e<<'\n';
 							break;
@@ -347,12 +363,41 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 							break;
 						}
 					}
+				}
+
+				RedrawWindow(hWnd,NULL,NULL,RDW_ERASE|RDW_FRAME|RDW_INVALIDATE|RDW_ALLCHILDREN);
+				break;
+
+
+			case ID_FILE_SAVEFILE:
+				try
+				{
+					DSNFileIn->FileOut(L"");
+					AddToLog(L"Write OK");
+				}
+				catch(int e)
+				{
+					switch(e)
+					{
+					case DSNExceptions::FILEOPENFAILED:
+						cout<<"An exception occurred. Exception Nr. "<<e<<'\n';
+						break;
+
+					case DSNExceptions::FORMATERROR:
+						cout<<"An exception occurred. Exception Nr. "<<e<<'\n';
+						break;
+
+					default:
+						cout<<"An exception occurred. Exception Nr. "<<e<<'\n';
+						break;
+					}
+				}
 
 
 				RedrawWindow(hWnd,NULL,NULL,RDW_ERASE|RDW_FRAME|RDW_INVALIDATE|RDW_ALLCHILDREN);
 
 				break;
- 
+
 			case ID_FILE_SAVEAS:
 				hr=BasicFileSave(hWnd,szFile);
 
@@ -381,38 +426,41 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 
 				RedrawWindow(hWnd,NULL,NULL,RDW_ERASE|RDW_FRAME|RDW_INVALIDATE|RDW_ALLCHILDREN);
-
 				break;
-			
+
 			case IDM_EXIT:
-                DestroyWindow(hWnd);
-                break;
-            default:
-                return DefWindowProc(hWnd, message, wParam, lParam);
-            }
-        }
-        break;
-    case WM_PAINT:
-        {
-            PAINTSTRUCT ps;
-            HDC hdc = BeginPaint(hWnd, &ps);
+				DestroyWindow(hWnd);
+				break;
 
-			OnPaint(hdc);
+			case ID_FILE_PRINT:
+				OnPrint(hWnd);
+				break;
 
-            // TODO: Add any drawing code that uses hdc here...
-            EndPaint(hWnd, &ps);
-        }
-        break;
-    case WM_DESTROY:
-		if(DSNFileIn)
-		{
-			delete DSNFileIn;
-			DSNFileIn=0;
+			default:
+				return DefWindowProc(hWnd,message,wParam,lParam);
+			}
 		}
-        PostQuitMessage(0);
-        break;
-    default:
-        return DefWindowProc(hWnd, message, wParam, lParam);
+		case WM_PAINT:
+			{
+				PAINTSTRUCT ps;
+				HDC hdc = BeginPaint(hWnd, &ps);
+
+				OnPaint(hdc);
+
+				// TODO: Add any drawing code that uses hdc here...
+				EndPaint(hWnd, &ps);
+			}
+			break;
+		case WM_DESTROY:
+			if(DSNFileIn)
+			{
+				delete DSNFileIn;
+				DSNFileIn=0;
+			}
+			PostQuitMessage(0);
+			break;
+		default:
+			return DefWindowProc(hWnd, message, wParam, lParam);
     }
     return 0;
 }
