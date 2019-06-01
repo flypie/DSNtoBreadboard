@@ -71,7 +71,7 @@ void MSWDSNFile::DrawLine(DSNPen& PenIn,vertex &a,vertex &b)
 	MSWPen.SetColor(GetMSWColour(Colour));
 	PenIn.GetWidth(Width);
 	MSWPen.SetWidth((REAL)(Width*gscaletodevice));
-	MSWPen.SetStartCap(LineCapRound);
+	MSWPen.SetStartCap(LineCapRound);							
 	MSWPen.SetEndCap(LineCapRound);
 
 	graphics->DrawLine(&MSWPen,ix1,iy1,ix2,iy2);

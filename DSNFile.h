@@ -150,7 +150,7 @@ public:
 		A=Colour;
 	};
 
-	void SetColour(DSNCOLOUR& A)
+	void SetColour(DSNCOLOUR A)
 	{
 		Colour=A;
 	};
@@ -162,6 +162,17 @@ private:
 
 };
 
+typedef struct
+{
+	wstring Body;
+	wstring Device;
+	int	Number;
+} Pin;
+
+//std::vector<Pin> Pins;
+
+
+
 class DSNFile
 {
 public:
@@ -170,7 +181,7 @@ public:
 
 	DSNFile(std::wstring &FileName);
 
-	DSNReturn FileOut(wstring File);
+	DSNReturn FileOut(wstring &File);
 
 protected:
 	DSNReturn Parse();
@@ -181,6 +192,8 @@ protected:
 	void DrawComponentImage(const Element& Image,vertex xy,double angle);
 	void DrawComponentOfType(const Element& Part,const Element& Image);
 	void DrawPCBOutline(const Element& path);
+	void DrawNets(std::vector<Pin> PinList);
+
 
 	virtual void DrawLine(DSNPen& pen,vertex& a,vertex& b) = 0;
 	virtual void DrawCircle(DSNPen& pen,vertex& a,double radius) =0 ;

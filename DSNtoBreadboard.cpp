@@ -372,8 +372,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			case ID_FILE_SAVEFILE:
 				try
 				{
-					DSNFileIn->FileOut(L"");
-					AddToLog(L"Write OK");
+					wstring temp=L"";
+				
+					DSNFileIn->FileOut(temp);
+//					AddToLog(L"Write OK");
 				}
 				catch(int e)
 				{
@@ -404,7 +406,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				try
 				{
 					DSNFileIn->FileOut(szFile);
-					AddToLog(L"Write OK "+szFile);
+//					AddToLog(L"Write OK "+szFile);
 				}
 				catch(int e)
 				{

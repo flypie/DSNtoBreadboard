@@ -189,9 +189,11 @@ DSNReturn DSNFile::Parse()
 }
 
 
-DSNReturn DSNFile::FileOut(wstring Name)
+DSNReturn DSNFile::FileOut(wstring &Name)
 {
-	if(Name==L"")
+	DSNReturn Ret=FAIL;
+
+	if(Name!=L"")
 	{
 		OFile.open(Name);
 	}
@@ -199,11 +201,24 @@ DSNReturn DSNFile::FileOut(wstring Name)
 	{
 		OFile.open(OpenFileName);
 	}
-	WriteElement(Root);
 
-	OFile.close();
 
-	return SUCCESS;
+	if(!OFile.good())
+	{
+		std::cout<<"After: Not good...\n";
+	}
+
+	if(OFile.is_open())
+	{
+		WriteElement(Root);
+
+		OFile.close();
+
+		Ret=SUCCESS;
+
+	}
+
+	return Ret;
 }
 
 
@@ -221,7 +236,6 @@ void DSNFile::DrawComponentImage(const Element& Image,vertex inxy,double angle)
 
 	for(auto const& ImageEl:Image.SubElements)
 	{
-
 		if(wstringicmp(ImageEl.Name,wstring(L"outline"))==0)
 		{
 			DSNPen	pen(BLUE);
@@ -269,9 +283,6 @@ void DSNFile::DrawComponentImage(const Element& Image,vertex inxy,double angle)
 		{
 			vertex	pinoffset;
 
-			DSNPen	pen(GREEN);
-
-
 			curfield=0;
 
 			nextdelimter=ImageEl.Body.find_first_of(' ',curfield);
@@ -316,6 +327,8 @@ void DSNFile::DrawComponentImage(const Element& Image,vertex inxy,double angle)
 								curfield=0;
 								if(wstringicmp(Shape.Name,wstring(L"circle"))==0)
 								{
+									DSNPen	pen(YELLOW);
+
 									nextdelimter=Shape.Body.find_first_of(' ',curfield);
 									wstring side=Shape.Body.substr(curfield,nextdelimter-curfield);
 									curfield=Shape.Body.find_first_not_of(' ',nextdelimter);
@@ -335,6 +348,8 @@ void DSNFile::DrawComponentImage(const Element& Image,vertex inxy,double angle)
 								}
 								else if(wstringicmp(Shape.Name,wstring(L"rect"))==0)
 								{
+									DSNPen pen(YELLOW);
+
 									vertex xy1,xy2;
 
 									nextdelimter=Shape.Body.find_first_of(' ',curfield);
@@ -368,6 +383,8 @@ void DSNFile::DrawComponentImage(const Element& Image,vertex inxy,double angle)
 								}
 								else if(wstringicmp(Shape.Name,wstring(L"path"))==0)
 								{
+									DSNPen	pen(YELLOW);
+					
 									size_t curfield,nextdelimter,linewidth;
 									std::vector<vertex> vertices;
 
@@ -383,7 +400,7 @@ void DSNFile::DrawComponentImage(const Element& Image,vertex inxy,double angle)
 									linewidth=stoi(Shape.Body.substr(curfield,nextdelimter-curfield));
 									curfield=Shape.Body.find_first_not_of(' ',nextdelimter);
 
-									pen.SetWidth(linewidth/gscalefromfile);
+									pen.SetWidth(linewidth);
 
 									while(nextdelimter!=wstring::npos)
 									{
@@ -402,10 +419,17 @@ void DSNFile::DrawComponentImage(const Element& Image,vertex inxy,double angle)
 
 										vertices.push_back(tempa);
 									}
-
-									for(unsigned int i=0; i<vertices.size()-1; i++)
+										 
+									if(vertices.size()==2&&(vertices[0].x==vertices[1].x)&&(vertices[0].y==vertices[1].y))
 									{
-										DrawLine(pen,vertices[i],vertices[i+1]);
+										DrawCircle(pen,vertices[0],linewidth);
+									}
+									else
+									{
+										for(unsigned int i=0; i<vertices.size()-1; i++)
+										{
+											DrawLine(pen,vertices[i],vertices[i+1]);
+										}
 									}
 								}
 								else
@@ -530,7 +554,7 @@ void DSNFile::DrawPCBOutline(const Element& path)
 
 	nextdelimter=path.Body.find_first_of(' ',curfield);
 	wstring layer_id=path.Body.substr(0,nextdelimter);
-	curfield=nextdelimter+1;
+	curfield=path.Body.find_first_not_of(' ',nextdelimter);
 
 	nextdelimter=path.Body.find_first_of(' ',curfield);
 	aperture_width=stoi(path.Body.substr(curfield,nextdelimter-curfield));
@@ -590,12 +614,121 @@ void DSNFile::DrawPCBOutline(const Element& path)
 }
 
 
+void DSNFile::DrawNets(std::vector<Pin> PinList)
+{
+	Element* placements;
+	Element* library,* image;
+	vector<vertex> thisnet;
+
+	for(Pin PinPad:PinList)
+	{
+		placements=Root.FindSub(L"placement");
+		if(placements)
+		{
+			for(auto const& place:placements->SubElements)
+			{
+				if(wstringicmp(place.Name,wstring(L"component"))==0)
+				{
+					for(auto const& Comp:place.SubElements)
+					{
+						//						image=p->FindSub(L"image",PinPad.Device);
+
+						size_t curfield=0,nextdelimter;
+
+						nextdelimter=Comp.Body.find_first_of(' ',curfield);
+						wstring cname=Comp.Body.substr(0,nextdelimter);
+						curfield=Comp.Body.find_first_not_of(' ',nextdelimter);
+
+						if(cname==PinPad.Device)
+						{
+							vertex pxy;
+
+							nextdelimter=Comp.Body.find_first_of(' ',curfield);
+							pxy.x=stod(Comp.Body.substr(curfield,nextdelimter-curfield));
+							curfield=Comp.Body.find_first_not_of(' ',nextdelimter);
+
+							nextdelimter=Comp.Body.find_first_of(' ',curfield);
+							pxy.y=stod(Comp.Body.substr(curfield,nextdelimter-curfield));
+							curfield=Comp.Body.find_first_not_of(' ',nextdelimter);
+
+							nextdelimter=Comp.Body.find_first_of(' ',curfield);
+							wstring cforb=Comp.Body.substr(curfield,nextdelimter-curfield);
+							curfield=Comp.Body.find_first_not_of(' ',nextdelimter);
+
+							nextdelimter=Comp.Body.find_first_of(' ',curfield);
+							double angle=stod(Comp.Body.substr(curfield,nextdelimter-curfield));
+							curfield=Comp.Body.find_first_not_of(' ',nextdelimter);
+
+							library=Root.FindSub(L"library");
+							if(library)
+							{
+								image=library->FindSub(L"image",place.Body);
+								if(image)
+								{
+									for(auto const& Item:image->SubElements)
+									{
+										if(Item.Name==L"pin")
+										{
+												curfield=0;
+
+												nextdelimter=Item.Body.find_first_of(' ',curfield);
+												wstring name=Item.Body.substr(0,nextdelimter-curfield);
+												curfield=Item.Body.find_first_not_of(' ',nextdelimter);
+
+												nextdelimter=Item.Body.find_first_of(' ',curfield);
+												int PinNum=stoi(Item.Body.substr(curfield,nextdelimter-curfield));
+												curfield=Item.Body.find_first_not_of(' ',nextdelimter);
+
+												if(PinNum==PinPad.Number)
+												{
+													vertex	pinoffset;
+
+													nextdelimter=Item.Body.find_first_of(' ',curfield);
+													pinoffset.x=stod(Item.Body.substr(curfield,nextdelimter-curfield));
+													curfield=Item.Body.find_first_not_of(' ',nextdelimter);
+
+													nextdelimter=Item.Body.find_first_of(' ',curfield);
+													pinoffset.y=stod(Item.Body.substr(curfield,nextdelimter-curfield));
+													curfield=Item.Body.find_first_not_of(' ',nextdelimter);
+
+													pinoffset.Rotate(angle);
+
+													thisnet.push_back(pxy+pinoffset);
+
+
+													break;
+												}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+		DSNPen	pen(BLACK);
+		pen.SetWidth(0.0004);
+
+		for(unsigned int i=0; i<thisnet.size()-1; i++)
+		{
+			DrawLine(pen,thisnet[i],thisnet[i+1]);
+		}
+
+}
+
+
 void DSNFile::Paint()
 {
 	Element* structure,* boundary,* path;
 	Element* placements;
 	Element* library,* image;
+	Element* networks;
 
+	size_t curfield,nextdelimter;
+	std::vector<Pin> DPins;
 
 	structure=Root.FindSub(L"structure");
 	if(structure)
@@ -613,29 +746,54 @@ void DSNFile::Paint()
 	placements=Root.FindSub(L"placement");
 	if(placements)
 	{
-		for(auto const& placement:placements->SubElements)
+		for(auto const& place:placements->SubElements)
 		{
-			if(wstringicmp(placement.Name,wstring(L"component"))==0)
+			if(wstringicmp(place.Name,wstring(L"component"))==0)
 			{
 				library=Root.FindSub(L"library");
 				if(library)
 				{
-					image=library->FindSub(L"image",placement.Body);
+					image=library->FindSub(L"image",place.Body);
 					if(image)
 					{
-						DrawComponentOfType(placement,*image);
+						DrawComponentOfType(place,*image);
 					}
 				}
 			}
 		}
 	}
-	placements=Root.FindSub(L"network");
-	if(placements)
+	networks=Root.FindSub(L"network");
+	if(networks)
 	{
-		for(auto const& placement:placements->SubElements)
+		for(auto const& net:networks->SubElements)
 		{
-			if(wstringicmp(placement.Name,wstring(L"net"))==0)
+			if(wstringicmp(net.Name,wstring(L"net"))==0)
 			{
+				for(auto const& pins:net.SubElements)
+				{
+					curfield=0;
+					nextdelimter=0;
+					
+					while(nextdelimter!=wstring::npos)
+					{
+						Pin temp;
+
+						nextdelimter=pins.Body.find_first_of(' ',curfield);
+						temp.Body=pins.Body.substr(curfield,nextdelimter-curfield);
+						curfield=pins.Body.find_first_not_of(' ',nextdelimter);
+
+
+						int delimter=temp.Body.find_first_of('-',0);
+						temp.Device=temp.Body.substr(0,delimter);
+						temp.Number=stoi(temp.Body.substr(delimter+1));
+						DPins.push_back(temp);						
+					}
+					if(DPins.size()>1)
+					{
+						DrawNets(DPins);
+					}
+					DPins.clear();
+				}
 			}
 		}
 	}
