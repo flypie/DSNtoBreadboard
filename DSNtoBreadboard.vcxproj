@@ -91,6 +91,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp14</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -151,17 +152,31 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Breadboard.h" />
+    <ClInclude Include="Breadboards.h" />
     <ClInclude Include="DSNFile.h" />
+    <ClInclude Include="DSNPen.h" />
     <ClInclude Include="DSNtoBreadboard.h" />
+    <ClInclude Include="DSNTools.h" />
     <ClInclude Include="framework.h" />
+    <ClInclude Include="MSWBreadBoard.h" />
+    <ClInclude Include="MSWBreadBoards.h" />
     <ClInclude Include="MSWDSNFile.h" />
+    <ClInclude Include="MSWTools.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="targetver.h" />
+    <ClInclude Include="vertex.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Breadboard.cpp" />
+    <ClCompile Include="Breadboards.cpp" />
     <ClCompile Include="DSNFile.cpp" />
     <ClCompile Include="DSNtoBreadboard.cpp" />
+    <ClCompile Include="DSNTools.cpp" />
+    <ClCompile Include="MSWBreadBoard.cpp" />
+    <ClCompile Include="MSWBreadBoards.cpp" />
     <ClCompile Include="MSWDSNFile.cpp" />
+    <ClCompile Include="MSWTools.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="DSNtoBreadboard.rc" />

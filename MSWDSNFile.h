@@ -8,14 +8,14 @@
 #include <gdiplus.h>
 using namespace Gdiplus;
 
+#include "MSWTools.h"
 #include "DSNFile.h"
 
 
-class MSWDSNFile :
-	public DSNFile
+class MSWDSNFile : public DSNFile
 {
 public:
-	MSWDSNFile(wstring a);
+	MSWDSNFile(wstring a, MSWTools &b);
 
 
 	void Paint(HDC hdc);
@@ -24,14 +24,7 @@ public:
 protected:
 
 private:
-
-	void DrawLine(DSNPen&pen,vertex & a,vertex & b);
-	void DrawCircle(DSNPen& pen,vertex& a,double radius);
-	void DrawRectangle(DSNPen& pen,vertex& a,vertex& b);
-
-
-
-	Graphics *graphics;
+	MSWTools* Tools;
 
 };
 

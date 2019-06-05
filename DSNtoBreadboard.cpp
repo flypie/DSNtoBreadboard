@@ -8,11 +8,10 @@
 
 #include "shobjidl_core.h"
 
-
 #include "DSNtoBreadboard.h"
-#include "DSNFile.h"
 
 #include "MSWDSNFile.h"
+#include "MSWBreadboards.h"
 
 #include <gdiplus.h>
 using namespace Gdiplus;
@@ -34,11 +33,36 @@ LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
 
 
-MSWDSNFile	*DSNFileIn=0;
+MSWDSNFile	*MSWDSNFileIn=0;
 
+MSWBreadBoards* MSWBreadBoardsIn=0;
 
+MSWTools *Tools;
 
 #define	MAXFILENAME	260
+
+
+typedef enum
+{
+	NONE,PCB,BREADBOARD
+} VIEWMODES;
+
+VIEWMODES ViewMode=NONE;
+
+
+int		DListLen;
+std::wstring* DList[1000];
+
+void AddToLog(const std::wstring FileName)
+{
+	if(!DList[DListLen])
+	{
+		DList[DListLen]=new std::wstring;
+	}
+
+	*DList[DListLen++]+=FileName;
+}
+
 
 
 HDC GetPrinterDC(HWND Hwnd)
@@ -66,11 +90,24 @@ VOID OnPaint(HDC hdc)
 {
 	if(hdc)
 	{
-		if(DSNFileIn!=0)
+		switch(ViewMode)
 		{
-			DSNFileIn->Paint(hdc);
-		}
+		case NONE:
+			break;
 
+		case PCB:
+			if(MSWDSNFileIn!=0)
+			{
+				MSWDSNFileIn->Paint(hdc);
+			}
+			break;
+		case BREADBOARD:
+			if(MSWBreadBoardsIn!=0)
+			{
+				MSWBreadBoardsIn->Paint(hdc);
+			}
+			break;
+		}
 		for(int i=0; i<DListLen; i++)
 		{
 			RECT	rc;
@@ -157,6 +194,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_DSNTOBREADBOARD));
 
     MSG msg;
+
+	Tools=new MSWTools();
+
 
     // Main message loop:
     while (GetMessage(&msg, nullptr, 0, 0))
@@ -319,6 +359,35 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 	std::wstring szFile;
 
+	if(MSWDSNFileIn==0)
+	{
+		ViewMode=NONE;
+		EnableMenuItem(GetMenu(hWnd),ID_VIEW_BREAD,MF_BYCOMMAND|MF_DISABLED);
+		EnableMenuItem(GetMenu(hWnd),ID_VIEW_PCB,MF_BYCOMMAND|MF_DISABLED);
+	}
+	else
+	{
+		EnableMenuItem(GetMenu(hWnd),ID_VIEW_BREAD,MF_BYCOMMAND|MF_ENABLED);
+		EnableMenuItem(GetMenu(hWnd),ID_VIEW_PCB,MF_BYCOMMAND|MF_ENABLED);
+	}
+
+	if(ViewMode==PCB)
+	{
+		CheckMenuItem(GetMenu(hWnd),ID_VIEW_PCB,MF_BYCOMMAND|MF_CHECKED);
+		CheckMenuItem(GetMenu(hWnd),ID_VIEW_BREAD,MF_BYCOMMAND|MF_UNCHECKED);
+	}
+	else if(ViewMode==BREADBOARD)
+	{
+		CheckMenuItem(GetMenu(hWnd),ID_VIEW_BREAD,MF_BYCOMMAND|MF_CHECKED);
+		CheckMenuItem(GetMenu(hWnd),ID_VIEW_PCB,MF_BYCOMMAND|MF_UNCHECKED);
+	}
+	else
+	{
+		CheckMenuItem(GetMenu(hWnd),ID_VIEW_BREAD,MF_BYCOMMAND|MF_UNCHECKED);
+		CheckMenuItem(GetMenu(hWnd),ID_VIEW_PCB,MF_BYCOMMAND|MF_UNCHECKED);
+	}
+
+
     switch (message)
     {
 		case WM_COMMAND:
@@ -332,10 +401,17 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				break;
 
 			case ID_FILE_OPENFILE:
-				if(DSNFileIn)
+				if(MSWDSNFileIn)
 				{
-					delete DSNFileIn;
-					DSNFileIn=0;
+					delete MSWDSNFileIn;
+
+					if(MSWBreadBoardsIn!=0)
+					{
+						delete MSWBreadBoardsIn;
+					}
+
+					MSWDSNFileIn=0;
+					ViewMode=PCB;
 				}
 
 				hr=BasicFileOpen(hWnd,szFile);
@@ -344,7 +420,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				{
 					try
 					{
-						DSNFileIn=new MSWDSNFile(szFile);
+						MSWDSNFileIn=new MSWDSNFile(szFile, *Tools);
+						ViewMode=PCB;
 					}
 					catch(int e)
 					{
@@ -374,8 +451,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				{
 					wstring temp=L"";
 				
-					DSNFileIn->FileOut(temp);
-//					AddToLog(L"Write OK");
+					MSWDSNFileIn->FileOut(temp);
 				}
 				catch(int e)
 				{
@@ -405,8 +481,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 				try
 				{
-					DSNFileIn->FileOut(szFile);
-//					AddToLog(L"Write OK "+szFile);
+					MSWDSNFileIn->FileOut(szFile);
 				}
 				catch(int e)
 				{
@@ -427,6 +502,17 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				}
 
 
+				RedrawWindow(hWnd,NULL,NULL,RDW_ERASE|RDW_FRAME|RDW_INVALIDATE|RDW_ALLCHILDREN);
+				break;
+
+			case ID_VIEW_BREAD:
+				MSWBreadBoardsIn=new MSWBreadBoards(*MSWDSNFileIn, *Tools);
+				ViewMode=BREADBOARD;
+				RedrawWindow(hWnd,NULL,NULL,RDW_ERASE|RDW_FRAME|RDW_INVALIDATE|RDW_ALLCHILDREN);
+				break;
+
+			case ID_VIEW_PCB:
+				ViewMode=PCB;
 				RedrawWindow(hWnd,NULL,NULL,RDW_ERASE|RDW_FRAME|RDW_INVALIDATE|RDW_ALLCHILDREN);
 				break;
 
@@ -454,10 +540,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			}
 			break;
 		case WM_DESTROY:
-			if(DSNFileIn)
+			if(MSWDSNFileIn)
 			{
-				delete DSNFileIn;
-				DSNFileIn=0;
+				delete MSWDSNFileIn;
+				MSWDSNFileIn=0;
+			}
+			if(MSWBreadBoardsIn!=0)
+			{
+				delete MSWBreadBoardsIn;
+				MSWBreadBoardsIn=0;
 			}
 			PostQuitMessage(0);
 			break;

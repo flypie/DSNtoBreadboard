@@ -33,6 +33,30 @@
     <ClInclude Include="MSWDSNFile.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Breadboard.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Breadboards.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="vertex.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DSNPen.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MSWBreadBoards.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MSWBreadBoard.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MSWTools.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DSNTools.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="DSNtoBreadboard.cpp">
@@ -42,6 +66,24 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="MSWDSNFile.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Breadboard.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Breadboards.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MSWBreadBoards.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MSWBreadBoard.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MSWTools.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DSNTools.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

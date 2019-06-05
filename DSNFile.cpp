@@ -1,26 +1,18 @@
+
 #include "DSNFile.h"
 
+extern void AddToLog(const std::wstring FileName);
 
-int		DListLen;
-std::wstring* DList[1000];
 
-void AddToLog(const std::wstring FileName)
-{
-	if(!DList[DListLen])
-	{
-		DList[DListLen]=new std::wstring;
-	}
-
-	*DList[DListLen++]+=FileName;
-}
-
-DSNFile::DSNFile(std::wstring& FileName)
+DSNFile::DSNFile(std::wstring& FileName,DSNTools &ToolsIn)
 {
 	Depth=0;
 
 	OpenFileName=FileName;
 
 	File.open(OpenFileName);
+
+	Tools=&ToolsIn;
 	
 	if(File.is_open())
 	{
@@ -270,11 +262,11 @@ void DSNFile::DrawComponentImage(const Element& Image,vertex inxy,double angle)
 						vertices.push_back(xy+inxy);
 					}
 
-					pen.SetWidth(linewidth/gscalefromfile);
+					pen.SetWidth(linewidth/Tools->gscalefromfile);
 
 					for(unsigned int i=0; i<vertices.size()-1; i++)
 					{
-						DrawLine(pen,vertices[i],vertices[i+1]);
+						Tools->DrawLine(pen,vertices[i],vertices[i+1]);
 					}
 				}
 			}
@@ -344,7 +336,7 @@ void DSNFile::DrawComponentImage(const Element& Image,vertex inxy,double angle)
 									temp.x=inxy.x+temp1.x;
 									temp.y=inxy.y+temp1.y;
 
-									DrawCircle(pen,temp,radius);
+									Tools->DrawCircle(pen,temp,radius);
 								}
 								else if(wstringicmp(Shape.Name,wstring(L"rect"))==0)
 								{
@@ -379,7 +371,7 @@ void DSNFile::DrawComponentImage(const Element& Image,vertex inxy,double angle)
 									vertex tempa=inxy+temp1+temp2;
 									vertex tempb=inxy+temp1+temp3;
 
-									DrawRectangle(pen,tempa,tempb);
+									Tools->DrawRectangle(pen,tempa,tempb);
 								}
 								else if(wstringicmp(Shape.Name,wstring(L"path"))==0)
 								{
@@ -422,13 +414,13 @@ void DSNFile::DrawComponentImage(const Element& Image,vertex inxy,double angle)
 										 
 									if(vertices.size()==2&&(vertices[0].x==vertices[1].x)&&(vertices[0].y==vertices[1].y))
 									{
-										DrawCircle(pen,vertices[0],linewidth);
+										Tools->DrawCircle(pen,vertices[0],linewidth);
 									}
 									else
 									{
 										for(unsigned int i=0; i<vertices.size()-1; i++)
 										{
-											DrawLine(pen,vertices[i],vertices[i+1]);
+											Tools->DrawLine(pen,vertices[i],vertices[i+1]);
 										}
 									}
 								}
@@ -488,7 +480,7 @@ void DSNFile::DrawComponentImage(const Element& Image,vertex inxy,double angle)
 					temp.x=inxy.x+offset.x;
 					temp.y=inxy.y+offset.y;
 
-					DrawCircle(Pen,temp,radius);
+					Tools->DrawCircle(Pen,temp,radius);
 				}
 				else
 				{
@@ -591,25 +583,25 @@ void DSNFile::DrawPCBOutline(const Element& path)
 		}
 	}
 
-	gfilewidth=lr.x-ul.x;
-	gxofffromfile=ul.x;
-	gfileheight=(ul.y-lr.y);
-	gyofffromfile=lr.y;
+	Tools->gfilewidth=lr.x-ul.x;
+	Tools->gxofffromfile=ul.x;
+	Tools->gfileheight=(ul.y-lr.y);
+	Tools->gyofffromfile=lr.y;
 
-	if(gfilewidth>gfileheight)
+	if(Tools->gfilewidth>Tools->gfileheight)
 	{
-		gscalefromfile=gfilewidth;
+		Tools->gscalefromfile=Tools->gfilewidth;
 	}
 	else
 	{
-		gscalefromfile=gfileheight;
+		Tools->gscalefromfile=Tools->gfileheight;
 	}
 
-	Pen.SetWidth(1.0/gscalefromfile);
+	Pen.SetWidth(1.0/Tools->gscalefromfile);
 
 	for(unsigned int i=0; i<vertices.size()-1; i++)
 	{
-		DrawLine(Pen,vertices[i],vertices[i+1]);
+		Tools->DrawLine(Pen,vertices[i],vertices[i+1]);
 	}
 }
 
@@ -631,7 +623,7 @@ void DSNFile::DrawNets(std::vector<Pin> PinList)
 				{
 					for(auto const& Comp:place.SubElements)
 					{
-						//						image=p->FindSub(L"image",PinPad.Device);
+						//image=p->FindSub(L"image",PinPad.Device);
 
 						size_t curfield=0,nextdelimter;
 
@@ -714,7 +706,7 @@ void DSNFile::DrawNets(std::vector<Pin> PinList)
 
 		for(unsigned int i=0; i<thisnet.size()-1; i++)
 		{
-			DrawLine(pen,thisnet[i],thisnet[i+1]);
+			Tools->DrawLine(pen,thisnet[i],thisnet[i+1]);
 		}
 
 }
