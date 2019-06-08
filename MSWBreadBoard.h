@@ -8,7 +8,7 @@ class MSWBreadBoard :  public BreadBoard
 
 {
 public:
-	MSWBreadBoard(MSWTools* ToolsIn)
+	MSWBreadBoard(MSWTools* ToolsIn) :BreadBoard (ToolsIn)
 	{
 		Tools=ToolsIn;
 	};

@@ -81,6 +81,7 @@ typedef struct
 	wstring Body;
 	wstring Device;
 	int	Number;
+	wstring pid; //When Number=-1 yje ise his string
 } Pin;
 
 class DSNFile
@@ -117,13 +118,14 @@ protected:
 
 	Element *Get(wstring a,wstring b,wstring c);
 
-//	double	gscalefromfile,gxofffromfile,gyofffromfile;
-//	double	gfilewidth,gfileheight;
-
 	friend class BreadBoards;
+
+	double GetConvertion() { return convertion; };
+	double ToMM(double dimension) { return dimension/convertion; };
 
 private:
 	DSNTools *Tools;
+	double convertion;
 };
 
 

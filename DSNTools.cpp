@@ -1,9 +1,60 @@
+
+#include <string>
+
 #include "DSNTools.h"
 
+using namespace std;
 
 
 
 
-//	void DSNTools::DrawLine(DSNPen& pen,vertex& a,vertex& b) {};
-//	void DSNTools::DrawCircle(DSNPen& pen,vertex& a,double radius) {};
-//	void DSNTools::DrawRectangle(DSNPen& pen,vertex& a,vertex& b) {};
+std::wstring trim(std::wstring &str)
+{
+	size_t start=0,end=str.size();
+	wstring trimmed;
+
+	for(wchar_t c:str)
+	{
+		if(!isspace(c))
+			break;
+		start++;
+	}
+
+	for(; end>start;)
+	{
+		if(!isspace(str[end-1]))
+			break;
+		end--;
+	}
+
+	trimmed=str.substr(start,end);
+	return trimmed;
+}
+
+
+std::wstring qtrim(std::wstring& str)
+{
+	size_t start=0,end=str.size();
+	wstring trimmed;
+
+	for(wchar_t c:str)
+	{
+		if(c!=L'"')
+			break;
+		start++;
+	}
+
+	for(; end>start;)
+	{
+		if((str[end-1])!=L'\"')
+			break;
+		end--;
+	}
+
+	trimmed=str.substr(start,end);
+	return trimmed;
+}
+
+
+
+

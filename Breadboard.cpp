@@ -15,37 +15,42 @@ const	double BreadBoard::CenterGap=CenterGapDef;
 const	double BreadBoard::PinPitch=PinPitchDef;
 
 
+int BreadBoard::NumberofBoards=0;
 
-const void BreadBoard::Paint(int num)
+
+
+const void BreadBoard::Paint()
 {
 	DSNPen	Pen(BLACK);
 	
-	vertex	verticesa,verticesb,wh;
+	vertex	verticesa,verticesb,verticesc,verticesd,wh;
+	double xoff=(BoardWidth-BoardColumns*PinPitch)/2;
 
-	wh.x=PinPitch*2;
-	wh.y=PinPitch;
+	double voff=BoardNumber*(BoardHeight+10);
+	double ycent=BoardHeight/2+5+voff;
+
+
+	wh.x=wh.y=PinPitch*2;
 
 	verticesa.x=0;
-	verticesa.y=0;
-
-	verticesb.x=BoardWidth+2;
-	verticesb.y=BoardHeight+2;
-
-	Pen.SetWidth(0.5);
-
-	Tools->DrawRectangle(Pen,verticesa,verticesb);
-
-	verticesa.x=1;
-	verticesa.y=1;
+	verticesa.y=ycent-CenterGap/2-10*PinPitch;
 
 	verticesb.x=BoardWidth;
-	verticesb.y=BoardHeight;
+	verticesb.y=ycent-CenterGap/2-10*PinPitch;
+
+	verticesc.x=BoardWidth;
+	verticesc.y=ycent+CenterGap/2+10*PinPitch;
+
+	verticesd.x=0;
+	verticesd.y=ycent+CenterGap/2+10*PinPitch;
 
 	Pen.SetWidth(0.5);
 
-	Pen.SetColour(WHITE);
+	Tools->DrawLine(Pen,verticesa,verticesb);
+	Tools->DrawLine(Pen,verticesb,verticesc);
+	Tools->DrawLine(Pen,verticesc,verticesd);
+	Tools->DrawLine(Pen,verticesd,verticesa);
 
-	Tools->DrawRectangle(Pen,verticesa,verticesb);
 
 	Pen.SetWidth(0.25);
 	Pen.SetColour(BLUE);
@@ -53,22 +58,42 @@ const void BreadBoard::Paint(int num)
 	verticesa.x=0;
 	verticesb.x=BoardWidth;
 
-	verticesa.y=verticesb.y=PinPitch;
+	verticesa.y=verticesb.y=ycent-CenterGap/2-9*PinPitch;
 	Tools->DrawLine(Pen,verticesa,verticesb);
 
-	verticesa.y=verticesb.y=BoardHeight-PinPitch*4;
+	verticesa.y=verticesb.y=ycent+CenterGap/2+6*PinPitch;
 	Tools->DrawLine(Pen,verticesa,verticesb);
 
 	Pen.SetColour(RED);
 
-	verticesa.y=verticesb.y=BoardHeight-PinPitch;
+	verticesa.y=verticesb.y=ycent+CenterGap/2+9*PinPitch;
 	Tools->DrawLine(Pen,verticesa,verticesb);
 
-	verticesa.y=verticesb.y=PinPitch*4;
+	verticesa.y=verticesb.y=ycent-CenterGap/2-6*PinPitch;
 	Tools->DrawLine(Pen,verticesa,verticesb);
 
-	double xoff=(BoardWidth-BoardColumns*PinPitch)/2;
-	double ycent=BoardHeight/2;
+	verticesa.x=xoff-PinPitch;
+	verticesb.x=BoardWidth-xoff+PinPitch;
+
+	wstring aStr;
+
+	for(int j=0; j<5; j++)
+	{
+		aStr=(wchar_t)((wchar_t)'E'-j);
+		verticesa.y=ycent-CenterGap/2-(j)*PinPitch;
+		Tools->DrawString(Pen,verticesa,wh,aStr);
+
+		verticesb.y=ycent+CenterGap/2+(j)*PinPitch;
+		Tools->DrawString(Pen,verticesb,wh,aStr);
+
+
+		aStr=(wchar_t)((wchar_t)'F'+j);
+		verticesa.y=ycent+CenterGap/2+(j)*PinPitch;
+		Tools->DrawString(Pen,verticesa,wh,aStr);
+
+		verticesb.y=ycent-CenterGap/2-(j)*PinPitch;
+		Tools->DrawString(Pen,verticesb,wh,aStr);
+	}
 
 	Pen.SetColour(BLACK);
 
@@ -92,14 +117,14 @@ const void BreadBoard::Paint(int num)
 		}
 
 		if(i%5==0)
-		{
-			verticesa.y=ycent-CenterGap/2-6*PinPitch;
-
+		{ 
 			wstring aStr=std::to_wstring(i);
+
+			verticesa.y=ycent-CenterGap/2-5*PinPitch;
 			
 			Tools->DrawString(Pen,verticesa,wh,aStr);
 
-			verticesa.y=ycent+CenterGap/2+6*PinPitch;
+			verticesa.y=ycent+CenterGap/2+5*PinPitch;
 
 			aStr=std::to_wstring((int)(BoardColumns-i));
 
@@ -112,10 +137,10 @@ const void BreadBoard::Paint(int num)
 
 			for(int j=0; j<2; j++)
 			{
-				verticesa.y=(j+2)*PinPitch;
+				verticesa.y=ycent-CenterGap/2-(7+j)*PinPitch;
 				Tools->DrawCircle(Pen,verticesa,PinPitch/2);
 
-				verticesa.y=BoardHeight-(j+2)*PinPitch;
+				verticesa.y=ycent+CenterGap/2+(7+j)*PinPitch;
 				Tools->DrawCircle(Pen,verticesa,PinPitch/2);
 
 			}

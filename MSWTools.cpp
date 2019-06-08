@@ -38,7 +38,7 @@ Color GetMSWColour(DSNCOLOUR In)
 		break;
 	}
 
-	return Ret;
+return Ret;
 }
 
 MSWTools::MSWTools()
@@ -58,16 +58,33 @@ void MSWTools::DrawLine(DSNPen& PenIn,vertex& a,vertex& b)
 	double Width;
 
 	xy1.x=(a.x-gxofffromfile)/gscalefromfile;
-	xy1.y=(gfileheight-(a.y-gyofffromfile))/gscalefromfile;
+	if(GetFileOrientation()==FILE_IS_X_GOES_DOWN)
+	{
+		xy1.y=(a.y-gyofffromfile)/gscalefromfile;
+
+	}
+	else
+	{
+		xy1.y=(gfileheight-(a.y-gyofffromfile))/gscalefromfile;
+	}
+	
 	xy2.x=(b.x-gxofffromfile)/gscalefromfile;
-	xy2.y=(gfileheight-(b.y-gyofffromfile))/gscalefromfile;
+	if(GetFileOrientation()==FILE_IS_X_GOES_DOWN)
+	{
+		xy2.y=(b.y-gyofffromfile)/gscalefromfile;
 
-	int ix1,iy1,ix2,iy2;
+	}
+	else
+	{
+		xy2.y=(gfileheight-(b.y-gyofffromfile))/gscalefromfile;
+	}
 
-	ix1=(int)(xy1.x*gscaletodevice);
-	iy1=(int)(xy1.y*gscaletodevice);
-	ix2=(int)(xy2.x*gscaletodevice);
-	iy2=(int)(xy2.y*gscaletodevice);
+	REAL ix1,iy1,ix2,iy2;
+
+	ix1=(REAL)(xy1.x*gscaletodevice);
+	iy1=(REAL)(xy1.y*gscaletodevice);
+	ix2=(REAL)(xy2.x*gscaletodevice);
+	iy2=(REAL)(xy2.y*gscaletodevice);
 
 	PenIn.GetColour(Colour);
 	MSWPen.SetColor(GetMSWColour(Colour));
@@ -82,18 +99,27 @@ void MSWTools::DrawLine(DSNPen& PenIn,vertex& a,vertex& b)
 void MSWTools::DrawCircle(DSNPen& PenIn,vertex& a,double radius)
 {
 	vertex	xy1;
-	int ix1,iy1,r2;
+	REAL ix1,iy1,r2;
 	DSNCOLOUR Colour;
 	Brush* brush;
 
 	xy1.x=(a.x-gxofffromfile)/gscalefromfile;
-	xy1.y=(gfileheight-(a.y-gyofffromfile))/gscalefromfile;
+	if(GetFileOrientation()==FILE_IS_X_GOES_DOWN)
+	{
+		xy1.y=(a.y-gyofffromfile)/gscalefromfile;
+
+	}
+	else
+	{
+		xy1.y=(gfileheight-(a.y-gyofffromfile))/gscalefromfile;
+	}
+
 	double r1=radius/gscalefromfile;
 
 
-	ix1=(int)(xy1.x*gscaletodevice);
-	iy1=(int)(xy1.y*gscaletodevice);
-	r2=(int)(r1*gscaletodevice);
+	ix1=(REAL)(xy1.x*gscaletodevice);
+	iy1=(REAL)(xy1.y*gscaletodevice);
+	r2=(REAL)(r1*gscaletodevice);
 
 	PenIn.GetColour(Colour);
 
@@ -106,18 +132,36 @@ void MSWTools::DrawCircle(DSNPen& PenIn,vertex& a,double radius)
 void MSWTools::DrawRectangle(DSNPen& PenIn,vertex& a,vertex& b)
 {
 	vertex	xy1;
-	int ix1,iy1;
+	REAL ix1,iy1;
 	DSNCOLOUR Colour;
 	Brush* brush;
+	REAL h=(REAL)-(gscaletodevice*(b.y-a.y)/gscalefromfile);
+
 
 	xy1.x=(a.x-gxofffromfile)/gscalefromfile;
-	xy1.y=(gfileheight-(a.y-gyofffromfile))/gscalefromfile;
 
-	ix1=(int)(xy1.x*gscaletodevice);
-	iy1=(int)(xy1.y*gscaletodevice);
+	if(GetFileOrientation()==FILE_IS_X_GOES_DOWN)
+	{
+		xy1.y=(a.y-gyofffromfile)/gscalefromfile;
 
-	int w=(int)(gscaletodevice*(b.x-a.x)/gscalefromfile);
-	int h=(int)-(gscaletodevice*(b.y-a.y)/gscalefromfile);
+	}
+	else
+	{
+		xy1.y=(gfileheight-(a.y-gyofffromfile))/gscalefromfile;
+	}
+
+	ix1=(REAL)(xy1.x*gscaletodevice);
+	iy1=(REAL)(xy1.y*gscaletodevice);
+
+	REAL w=(REAL)(gscaletodevice*(b.x-a.x)/gscalefromfile);
+	if(GetFileOrientation()==FILE_IS_X_GOES_DOWN)
+	{
+		h=(REAL)(gscaletodevice*(b.y-a.y)/gscalefromfile);
+	}
+	else
+	{
+		h=(REAL)-(gscaletodevice*(b.y-a.y)/gscalefromfile);
+	}
 
 	if(w<0)
 	{
@@ -147,7 +191,17 @@ void MSWTools::DrawString(DSNPen& PenIn,vertex& xy,vertex& wh,std::wstring& b)
 	Brush* brush;
 
 	xy1.x=(xy.x-gxofffromfile)/gscalefromfile;
-	xy1.y=(gfileheight-(xy.y-gyofffromfile))/gscalefromfile;
+	
+	if(GetFileOrientation()==FILE_IS_X_GOES_DOWN)
+	{
+		xy1.y=(xy.y-gyofffromfile)/gscalefromfile;
+
+	}
+	else
+	{
+		xy1.y=(gfileheight-(xy.y-gyofffromfile))/gscalefromfile;
+	}
+
 
 	ix1=(xy1.x*gscaletodevice);
 	iy1=(xy1.y*gscaletodevice);
@@ -165,12 +219,13 @@ void MSWTools::DrawString(DSNPen& PenIn,vertex& xy,vertex& wh,std::wstring& b)
 
 	RectF A;
 
-	A.Width=wh.x;
-	A.Height=wh.y;
+	A.Width=(REAL)wh.x;
+	A.Height=(REAL)wh.y;
 
-	A.X=ix1-wh.x/2;
-	A.Y=iy1-wh.y/2;
+	A.X=(REAL)(ix1-wh.x/2);
+	A.Y=(REAL)(iy1-wh.y/2);
 
+//	graphics->RotateTransform(180);
 	graphics->DrawString(b.c_str(),-1,&Fon,A,&StrF,brush);
-
+//	graphics->RotateTransform(-180);
 }

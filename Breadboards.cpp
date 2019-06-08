@@ -7,20 +7,33 @@ typedef struct
 	Element	Instance;
 } thing;
 
-
-
-
-BreadBoards::BreadBoards(DSNFile& PCBIn, DSNTools &ToolsIn)
+typedef struct
 {
-	Element* structure,* boundary,* path;
+	wstring name;
+	Element	body;
+	int		PinCount;
+
+	vertex ul,lr;
+
+} part;
+
+
+
+BreadBoards::BreadBoards(DSNFile& PCBIn,DSNTools& ToolsIn)
+{
 	Element* placements;
-	Element* library,* image;
+	Element* library;
 	Element* networks;
+	Element* image;
+
+	size_t curfield,nextdelimter;
 
 	thing item;
-
 	std::vector<thing> Items;
-//	std::vector<Element> Types;
+
+	part Comp;
+	std::vector<part> Comps;
+
 
 	PCB=&PCBIn;
 	Tools=&ToolsIn;
@@ -50,7 +63,7 @@ BreadBoards::BreadBoards(DSNFile& PCBIn, DSNTools &ToolsIn)
 
 				for(auto const& type:place.SubElements)
 				{
-					item.Instance=place;
+					item.Instance=type;
 
 					Items.push_back(item);
 				}
@@ -58,21 +71,93 @@ BreadBoards::BreadBoards(DSNFile& PCBIn, DSNTools &ToolsIn)
 		}
 	}
 
+	int TotalPinSideCount=0;
 
 	for(auto const& Item:Items)
 	{
 		library=PCBIn.Root.FindSub(L"library");
 		if(library)
 		{
-//			image=library->FindSub(L"image",Item.Body);
-//			if(image)
+			for(auto const& Image:library->SubElements)
 			{
-//				DrawComponentOfType(place,*image);
+				if(Image.Body==Item.Component)
+				{
+					Comp.name=Item.Component;
+					Comp.body=Item.Instance;
+
+					Comp.PinCount=0;
+
+					Comp.ul.x=DBL_MAX;
+					Comp.ul.y=-DBL_MAX;
+					Comp.lr.x=-DBL_MAX;
+					Comp.lr.y=DBL_MAX;
+
+					for(auto const& ImageEl:Image.SubElements)
+					{
+						if(wstringicmp(ImageEl.Name,wstring(L"outline"))==0)
+						{
+						}
+						else if(wstringicmp(ImageEl.Name,wstring(L"pin"))==0)
+						{
+							vertex	pinoffset;
+
+							Comp.PinCount++;
+
+							curfield=0;
+
+							nextdelimter=ImageEl.Body.find_first_of(' ',curfield);
+							wstring name=ImageEl.Body.substr(0,nextdelimter-curfield);
+							curfield=ImageEl.Body.find_first_not_of(' ',nextdelimter);
+
+							nextdelimter=ImageEl.Body.find_first_of(' ',curfield);
+							wstring dimension_unit=ImageEl.Body.substr(curfield,nextdelimter-curfield);
+							dimension_unit=qtrim(dimension_unit);
+							curfield=ImageEl.Body.find_first_not_of(' ',nextdelimter);
+
+							nextdelimter=ImageEl.Body.find_first_of(' ',curfield);
+							pinoffset.x=stod(ImageEl.Body.substr(curfield,nextdelimter-curfield));
+							curfield=ImageEl.Body.find_first_not_of(' ',nextdelimter);
+
+							nextdelimter=ImageEl.Body.find_first_of(' ',curfield);
+							pinoffset.y=stod(ImageEl.Body.substr(curfield,nextdelimter-curfield));
+							curfield=ImageEl.Body.find_first_not_of(' ',nextdelimter);
+
+							pinoffset.x=PCBIn.ToMM(pinoffset.x);
+							pinoffset.y=PCBIn.ToMM(pinoffset.y);
+
+							if(pinoffset.x<Comp.ul.x)
+							{
+								Comp.ul.x=pinoffset.x;
+							}
+							if(pinoffset.y>Comp.ul.y)
+							{
+								Comp.ul.y=pinoffset.y;
+							}
+
+							if(pinoffset.x>Comp.lr.x)
+							{
+								Comp.lr.x=pinoffset.x;
+							}
+							if(pinoffset.y<Comp.lr.y)
+							{
+								Comp.lr.y=pinoffset.y;
+							}
+
+						}
+					}
+					TotalPinSideCount+=((Comp.PinCount+1)/2);
+					Comps.push_back(Comp);
+					break;
+				}
 			}
 		}
 	}
 
 
+	for(int i=0; i<=TotalPinSideCount/60; i++)
+	{
+		Boards.push_back(*new BreadBoard(Tools));
+	}
 };
 
 BreadBoards::~BreadBoards()
@@ -85,8 +170,8 @@ void BreadBoards::Paint()
 {
 	double voffset=0;
 
-	for(auto & Board:Boards)
+	for(auto& Board:Boards)
 	{
-		Board.Paint(0);
+		Board.Paint();
 	}
 }

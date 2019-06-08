@@ -3,10 +3,7 @@
 
 MSWBreadBoards::MSWBreadBoards(DSNFile &a, MSWTools &ToolsIn) : BreadBoards(a,ToolsIn)
 {
-
-	MSWBreadBoard *A = new MSWBreadBoard(&ToolsIn);
-
 	Tools=&ToolsIn;
 
-	Boards.push_back(*A);
+	Tools->SetFileOrientation(FILE_IS_X_GOES_DOWN);
 };

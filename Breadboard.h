@@ -22,14 +22,16 @@
 class BreadBoard
 {
 public:
-	BreadBoard() {};
+
 	BreadBoard(DSNTools* ToolsIn) 
 	{ 
+		BoardNumber=NumberofBoards;
+		NumberofBoards++;
 		Tools=ToolsIn;
 	};
 
 
-	const void Paint(int num);
+	const void Paint();
 
 //
 	
@@ -45,6 +47,9 @@ public:
 
 protected:
 	DSNTools* Tools;
+
+	static	int NumberofBoards;
+	int BoardNumber;
 };
 
 

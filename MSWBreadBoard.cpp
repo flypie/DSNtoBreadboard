@@ -34,13 +34,13 @@ void MSWBreadBoards::Paint(HDC hdc)
 
 		if(devwidth<devheight)
 		{
-			Tools->gscaletodevice=devwidth;
+			Tools->gscaletodevice=1;
 		}
 		else
 		{
-			Tools->gscaletodevice=devheight;
+			Tools->gscaletodevice=1;
 		}
-		Status Res=Tools->graphics->SetPageUnit(UnitPixel);
+		Status Res=Tools->graphics->SetPageUnit(UnitMillimeter);
 	}
 
 	Tools->gfilewidth=100;
@@ -49,9 +49,6 @@ void MSWBreadBoards::Paint(HDC hdc)
 	Tools->gyofffromfile=0;
 
 	Tools->gscalefromfile=1;
-
-//	Tools->Pen.SetWidth(1.0);
-
 
 	BreadBoards::Paint();
 

@@ -4,7 +4,7 @@
 extern void AddToLog(const std::wstring FileName);
 
 
-DSNFile::DSNFile(std::wstring& FileName,DSNTools &ToolsIn)
+DSNFile::DSNFile(std::wstring& FileName,DSNTools& ToolsIn)
 {
 	Depth=0;
 
@@ -13,7 +13,7 @@ DSNFile::DSNFile(std::wstring& FileName,DSNTools &ToolsIn)
 	File.open(OpenFileName);
 
 	Tools=&ToolsIn;
-	
+
 	if(File.is_open())
 	{
 		Parse();
@@ -22,7 +22,42 @@ DSNFile::DSNFile(std::wstring& FileName,DSNTools &ToolsIn)
 	{
 		throw DSNExceptions::FILEOPENFAILED;
 	}
-	
+
+	Element* structure;
+
+	std::vector<Pin> DPins;
+
+	structure=Root.FindSub(L"unit");
+
+	if(structure)
+	{
+		if(structure->Body==L"inch")
+		{
+			convertion=1/25.4;
+		}
+		else if(structure->Body==L"mil")
+		{
+			convertion=39.37;
+		}
+		else if(structure->Body==L"cm")
+		{
+			convertion=0.1;
+		}
+		else if(structure->Body==L"mm")
+		{
+			convertion=1;
+		}
+		else if(structure->Body==L"um")
+		{
+			convertion=1000;
+		}
+		else
+		{
+			throw;
+		}
+	}
+
+
 	File.close();
 
 
@@ -35,31 +70,8 @@ DSNFile::~DSNFile()
 }
 
 
-wstring trim(wstring str)
-{
-	size_t start=0,end=str.size();
-	wstring trimmed;
-	
-	for(wchar_t c:str)
-	{
-		if(!isspace(c))
-			break;
-		start++;
-	}
-	
-	for(;end>start;)
-	{
-		if(!isspace(str[end-1]))
-			break;
-		end--;
-	}
 
-	trimmed=str.substr(start,end);
-	return trimmed;
-}
-
-
-DSNReturn DSNFile::ReadElement(Element &Current)
+DSNReturn DSNFile::ReadElement(Element& Current)
 {
 	wchar_t c=0;
 	int SpaceCount=0;
@@ -69,10 +81,10 @@ DSNReturn DSNFile::ReadElement(Element &Current)
 	File>>Current.Name;
 
 	Current.Depth=++Depth;
-			
-	while(((c=File.get())!=')' || !NotInQuotes)&& c!=WEOF)
+
+	while(((c=File.get())!=')'||!NotInQuotes)&&c!=WEOF)
 	{
-		if(c=='(' && NotInQuotes)
+		if(c=='('&&NotInQuotes)
 		{
 			Current.SubElements.resize(Current.SubElements.size()+1);
 			ReadElement(Current.SubElements.back());
@@ -84,15 +96,15 @@ DSNReturn DSNFile::ReadElement(Element &Current)
 		}
 		else if(c==' ')
 		{
-			if(SpaceCount==0 && Current.Body.length()>0)
+			if(SpaceCount==0&&Current.Body.length()>0)
 			{
 				Current.Body+=c;
-		    }
+			}
 			SpaceCount++;
 		}
-		else 
+		else
 		{
-			if(c=='\"' && wstringicmp(Current.Name,wstring(L"string_quote")))
+			if(c=='\"'&&wstringicmp(Current.Name,wstring(L"string_quote")))
 			{
 				NotInQuotes=!NotInQuotes;
 			}
@@ -110,7 +122,7 @@ DSNReturn DSNFile::ReadElement(Element &Current)
 
 
 
-DSNReturn DSNFile::WriteElement(Element	& Current)
+DSNReturn DSNFile::WriteElement(Element& Current)
 {
 	wchar_t c=0;
 	int SpaceCount=0;
@@ -181,7 +193,7 @@ DSNReturn DSNFile::Parse()
 }
 
 
-DSNReturn DSNFile::FileOut(wstring &Name)
+DSNReturn DSNFile::FileOut(wstring& Name)
 {
 	DSNReturn Ret=FAIL;
 
@@ -217,7 +229,7 @@ DSNReturn DSNFile::FileOut(wstring &Name)
 #define PI 3.14159265
 
 
-void DSNFile::DrawComponentImage(const Element& Image,vertex inxy,double angle)
+void DSNFile::DrawComponentImage(const Element&Image,vertex inxy,double angle)
 {
 	size_t curfield,nextdelimter;
 
@@ -283,6 +295,7 @@ void DSNFile::DrawComponentImage(const Element& Image,vertex inxy,double angle)
 
 			nextdelimter=ImageEl.Body.find_first_of(' ',curfield);
 			wstring dimension_unit=ImageEl.Body.substr(curfield,nextdelimter-curfield);
+			dimension_unit=qtrim(dimension_unit);
 			curfield=ImageEl.Body.find_first_not_of(' ',nextdelimter);
 
 			nextdelimter=ImageEl.Body.find_first_of(' ',curfield);
@@ -319,7 +332,7 @@ void DSNFile::DrawComponentImage(const Element& Image,vertex inxy,double angle)
 								curfield=0;
 								if(wstringicmp(Shape.Name,wstring(L"circle"))==0)
 								{
-									DSNPen	pen(YELLOW);
+									DSNPen	pen(RED);
 
 									nextdelimter=Shape.Body.find_first_of(' ',curfield);
 									wstring side=Shape.Body.substr(curfield,nextdelimter-curfield);
@@ -340,7 +353,7 @@ void DSNFile::DrawComponentImage(const Element& Image,vertex inxy,double angle)
 								}
 								else if(wstringicmp(Shape.Name,wstring(L"rect"))==0)
 								{
-									DSNPen pen(YELLOW);
+									DSNPen pen(GREEN);
 
 									vertex xy1,xy2;
 
@@ -375,8 +388,8 @@ void DSNFile::DrawComponentImage(const Element& Image,vertex inxy,double angle)
 								}
 								else if(wstringicmp(Shape.Name,wstring(L"path"))==0)
 								{
-									DSNPen	pen(YELLOW);
-					
+									DSNPen	pen(BLUE);
+
 									size_t curfield,nextdelimter,linewidth;
 									std::vector<vertex> vertices;
 
@@ -392,7 +405,7 @@ void DSNFile::DrawComponentImage(const Element& Image,vertex inxy,double angle)
 									linewidth=stoi(Shape.Body.substr(curfield,nextdelimter-curfield));
 									curfield=Shape.Body.find_first_not_of(' ',nextdelimter);
 
-									pen.SetWidth(linewidth);
+									pen.SetWidth(linewidth/Tools->gscalefromfile);
 
 									while(nextdelimter!=wstring::npos)
 									{
@@ -411,13 +424,15 @@ void DSNFile::DrawComponentImage(const Element& Image,vertex inxy,double angle)
 
 										vertices.push_back(tempa);
 									}
-										 
+
 									if(vertices.size()==2&&(vertices[0].x==vertices[1].x)&&(vertices[0].y==vertices[1].y))
 									{
+										pen.SetColour(CYAN);
 										Tools->DrawCircle(pen,vertices[0],linewidth);
 									}
 									else
 									{
+										pen.SetColour(MAGENTA);
 										for(unsigned int i=0; i<vertices.size()-1; i++)
 										{
 											Tools->DrawLine(pen,vertices[i],vertices[i+1]);
@@ -614,6 +629,11 @@ void DSNFile::DrawNets(std::vector<Pin> PinList)
 
 	for(Pin PinPad:PinList)
 	{
+		if(PinPad.Device==L"Z5-6"&&PinList.size()==2)
+		{
+			printf("ded\n");
+
+		}
 		placements=Root.FindSub(L"placement");
 		if(placements)
 		{
@@ -623,12 +643,21 @@ void DSNFile::DrawNets(std::vector<Pin> PinList)
 				{
 					for(auto const& Comp:place.SubElements)
 					{
-						//image=p->FindSub(L"image",PinPad.Device);
-
 						size_t curfield=0,nextdelimter;
 
 						nextdelimter=Comp.Body.find_first_of(' ',curfield);
 						wstring cname=Comp.Body.substr(0,nextdelimter);
+
+						if(Comp.Body[curfield]==L'"')
+						{
+							cname=Comp.Body.substr(1,Comp.Body.find_first_of('"',1)-1);
+						}
+						else
+						{
+							int delimter=Comp.Body.find_first_of(' ',0);
+							cname=Comp.Body.substr(0,delimter);
+						}
+
 						curfield=Comp.Body.find_first_not_of(' ',nextdelimter);
 
 						if(cname==PinPad.Device)
@@ -661,35 +690,51 @@ void DSNFile::DrawNets(std::vector<Pin> PinList)
 									{
 										if(Item.Name==L"pin")
 										{
-												curfield=0;
+											curfield=0;
+
+											nextdelimter=Item.Body.find_first_of(' ',curfield);
+											wstring name=Item.Body.substr(0,nextdelimter-curfield);
+											curfield=Item.Body.find_first_not_of(' ',nextdelimter);
+
+											nextdelimter=Item.Body.find_first_of(' ',curfield);
+
+											int PinNum;
+											wstring PinName;
+
+											if(!isdigit(Item.Body.substr(curfield).c_str()[0]))
+											{
+												// conversion failed because the input wasn't a number
+												PinNum=-2;
+												PinName=Item.Body.substr(curfield,nextdelimter-curfield);
+												PinName=qtrim(PinName);
+											}
+											else
+											{
+												PinNum=stoi(Item.Body.substr(curfield));
+												// use converted
+											}
+
+											curfield=Item.Body.find_first_not_of(' ',nextdelimter);
+
+											if(PinNum==PinPad.Number||(PinPad.Number==-1&&PinNum==-2&&PinName==PinPad.pid))
+											{
+												vertex	pinoffset;
 
 												nextdelimter=Item.Body.find_first_of(' ',curfield);
-												wstring name=Item.Body.substr(0,nextdelimter-curfield);
+												pinoffset.x=stod(Item.Body.substr(curfield,nextdelimter-curfield));
 												curfield=Item.Body.find_first_not_of(' ',nextdelimter);
 
 												nextdelimter=Item.Body.find_first_of(' ',curfield);
-												int PinNum=stoi(Item.Body.substr(curfield,nextdelimter-curfield));
+												pinoffset.y=stod(Item.Body.substr(curfield,nextdelimter-curfield));
 												curfield=Item.Body.find_first_not_of(' ',nextdelimter);
 
-												if(PinNum==PinPad.Number)
-												{
-													vertex	pinoffset;
+												pinoffset.Rotate(angle);
 
-													nextdelimter=Item.Body.find_first_of(' ',curfield);
-													pinoffset.x=stod(Item.Body.substr(curfield,nextdelimter-curfield));
-													curfield=Item.Body.find_first_not_of(' ',nextdelimter);
-
-													nextdelimter=Item.Body.find_first_of(' ',curfield);
-													pinoffset.y=stod(Item.Body.substr(curfield,nextdelimter-curfield));
-													curfield=Item.Body.find_first_not_of(' ',nextdelimter);
-
-													pinoffset.Rotate(angle);
-
-													thisnet.push_back(pxy+pinoffset);
+												thisnet.push_back(pxy+pinoffset);
 
 
-													break;
-												}
+												break;
+											}
 										}
 									}
 								}
@@ -701,6 +746,9 @@ void DSNFile::DrawNets(std::vector<Pin> PinList)
 		}
 	}
 
+
+	if(thisnet.size()==PinList.size())
+	{
 		DSNPen	pen(BLACK);
 		pen.SetWidth(0.0004);
 
@@ -708,7 +756,11 @@ void DSNFile::DrawNets(std::vector<Pin> PinList)
 		{
 			Tools->DrawLine(pen,thisnet[i],thisnet[i+1]);
 		}
-
+	}
+	else
+	{
+		printf("test\n");
+	}
 }
 
 
@@ -765,20 +817,42 @@ void DSNFile::Paint()
 				{
 					curfield=0;
 					nextdelimter=0;
-					
+
 					while(nextdelimter!=wstring::npos)
 					{
 						Pin temp;
 
 						nextdelimter=pins.Body.find_first_of(' ',curfield);
 						temp.Body=pins.Body.substr(curfield,nextdelimter-curfield);
+
+						if(pins.Body[curfield]==L'"')
+						{
+							temp.Device=temp.Body.substr(1,temp.Body.find_first_of('"',1)-1);
+							temp.pid=temp.Body.substr(temp.Body.find_first_of('"',1)+2);
+
+						}
+						else
+						{
+							int delimter=temp.Body.find_first_of('-',0);
+							temp.Device=temp.Body.substr(0,delimter);
+
+							temp.pid=temp.Body.substr(delimter+1);
+
+						}
+
 						curfield=pins.Body.find_first_not_of(' ',nextdelimter);
+						if(!isdigit(temp.pid[0]))
+						{
+							// conversion failed because the input wasn't a number
+							temp.Number=-1;
+						}
+						else
+						{
+							temp.Number=stoi(temp.pid);
+							// use converted
+						}
 
-
-						int delimter=temp.Body.find_first_of('-',0);
-						temp.Device=temp.Body.substr(0,delimter);
-						temp.Number=stoi(temp.Body.substr(delimter+1));
-						DPins.push_back(temp);						
+						DPins.push_back(temp);
 					}
 					if(DPins.size()>1)
 					{

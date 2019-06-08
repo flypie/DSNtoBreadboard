@@ -19,6 +19,8 @@ void MSWDSNFile::Paint(HDC hdc)
 	RECT    rcCli;
 	int	devheight,devwidth;
 
+	Tools->SetFileOrientation(FILE_IS_X_GOES_UP);
+
 	Tools->graphics = new Graphics(hdc);
 
 	if(GetClientRect(WindowFromDC(hdc),&rcCli))

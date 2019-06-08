@@ -28,16 +28,16 @@ WCHAR szWindowClass[MAX_LOADSTRING];            // the main window class name
 
 // Forward declarations of functions included in this code module:
 ATOM                MyRegisterClass(HINSTANCE hInstance);
-BOOL                InitInstance(HINSTANCE, int);
-LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
-INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
+BOOL                InitInstance(HINSTANCE,int);
+LRESULT CALLBACK    WndProc(HWND,UINT,WPARAM,LPARAM);
+INT_PTR CALLBACK    About(HWND,UINT,WPARAM,LPARAM);
 
 
-MSWDSNFile	*MSWDSNFileIn=0;
+MSWDSNFile* MSWDSNFileIn=0;
 
 MSWBreadBoards* MSWBreadBoardsIn=0;
 
-MSWTools *Tools;
+MSWTools* Tools;
 
 #define	MAXFILENAME	260
 
@@ -156,7 +156,7 @@ VOID OnPrint(HWND hWnd)
 
 	OnPaint(prn);
 
- 	EndPage(prn);
+	EndPage(prn);
 
 	EndDoc(prn);
 
@@ -164,14 +164,14 @@ VOID OnPrint(HWND hWnd)
 }
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
-                     _In_opt_ HINSTANCE hPrevInstance,
-                     _In_ LPWSTR    lpCmdLine,
-                     _In_ int       nCmdShow)
+	_In_opt_ HINSTANCE hPrevInstance,
+	_In_ LPWSTR    lpCmdLine,
+	_In_ int       nCmdShow)
 {
-    UNREFERENCED_PARAMETER(hPrevInstance);
-    UNREFERENCED_PARAMETER(lpCmdLine);
+	UNREFERENCED_PARAMETER(hPrevInstance);
+	UNREFERENCED_PARAMETER(lpCmdLine);
 
-    // TODO: Place code here.
+	// TODO: Place code here.
    // Initialize GDI+.
 	GdiplusStartupInput gdiplusStartupInput;
 	ULONG_PTR           gdiplusToken;
@@ -180,35 +180,35 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
 
 
-    // Initialize global strings
-    LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
-    LoadStringW(hInstance, IDC_DSNTOBREADBOARD, szWindowClass, MAX_LOADSTRING);
-    MyRegisterClass(hInstance);
+	// Initialize global strings
+	LoadStringW(hInstance,IDS_APP_TITLE,szTitle,MAX_LOADSTRING);
+	LoadStringW(hInstance,IDC_DSNTOBREADBOARD,szWindowClass,MAX_LOADSTRING);
+	MyRegisterClass(hInstance);
 
-    // Perform application initialization:
-    if (!InitInstance (hInstance, nCmdShow))
-    {
-        return FALSE;
-    }
+	// Perform application initialization:
+	if(!InitInstance(hInstance,nCmdShow))
+	{
+		return FALSE;
+	}
 
-    HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_DSNTOBREADBOARD));
+	HACCEL hAccelTable=LoadAccelerators(hInstance,MAKEINTRESOURCE(IDC_DSNTOBREADBOARD));
 
-    MSG msg;
+	MSG msg;
 
 	Tools=new MSWTools();
 
 
-    // Main message loop:
-    while (GetMessage(&msg, nullptr, 0, 0))
-    {
-        if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg))
-        {
-            TranslateMessage(&msg);
-            DispatchMessage(&msg);
-        }
-    }
+	// Main message loop:
+	while(GetMessage(&msg,nullptr,0,0))
+	{
+		if(!TranslateAccelerator(msg.hwnd,hAccelTable,&msg))
+		{
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
+		}
+	}
 
-    return (int) msg.wParam;
+	return (int)msg.wParam;
 }
 
 
@@ -220,23 +220,23 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 //
 ATOM MyRegisterClass(HINSTANCE hInstance)
 {
-    WNDCLASSEXW wcex;
+	WNDCLASSEXW wcex;
 
-    wcex.cbSize = sizeof(WNDCLASSEX);
+	wcex.cbSize=sizeof(WNDCLASSEX);
 
-    wcex.style          = CS_HREDRAW | CS_VREDRAW;
-    wcex.lpfnWndProc    = WndProc;
-    wcex.cbClsExtra     = 0;
-    wcex.cbWndExtra     = 0;
-    wcex.hInstance      = hInstance;
-    wcex.hIcon          = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_DSNTOBREADBOARD));
-    wcex.hCursor        = LoadCursor(nullptr, IDC_ARROW);
-    wcex.hbrBackground  = (HBRUSH)(COLOR_WINDOW+1);
-    wcex.lpszMenuName   = MAKEINTRESOURCEW(IDC_DSNTOBREADBOARD);
-    wcex.lpszClassName  = szWindowClass;
-    wcex.hIconSm        = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));
+	wcex.style=CS_HREDRAW|CS_VREDRAW;
+	wcex.lpfnWndProc=WndProc;
+	wcex.cbClsExtra=0;
+	wcex.cbWndExtra=0;
+	wcex.hInstance=hInstance;
+	wcex.hIcon=LoadIcon(hInstance,MAKEINTRESOURCE(IDI_DSNTOBREADBOARD));
+	wcex.hCursor=LoadCursor(nullptr,IDC_ARROW);
+	wcex.hbrBackground=(HBRUSH)(COLOR_WINDOW+1);
+	wcex.lpszMenuName=MAKEINTRESOURCEW(IDC_DSNTOBREADBOARD);
+	wcex.lpszClassName=szWindowClass;
+	wcex.hIconSm=LoadIcon(wcex.hInstance,MAKEINTRESOURCE(IDI_SMALL));
 
-    return RegisterClassExW(&wcex);
+	return RegisterClassExW(&wcex);
 }
 
 //
@@ -249,51 +249,51 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 //        In this function, we save the instance handle in a global variable and
 //        create and display the main program window.
 //
-BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
+BOOL InitInstance(HINSTANCE hInstance,int nCmdShow)
 {
-   hInst = hInstance; // Store instance handle in our global variable
+	hInst=hInstance; // Store instance handle in our global variable
 
-   HWND hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
-      CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, nullptr, nullptr, hInstance, nullptr);
+	HWND hWnd=CreateWindowW(szWindowClass,szTitle,WS_OVERLAPPEDWINDOW,
+		CW_USEDEFAULT,0,CW_USEDEFAULT,0,nullptr,nullptr,hInstance,nullptr);
 
-   if (!hWnd)
-   {
-      return FALSE;
-   }
+	if(!hWnd)
+	{
+		return FALSE;
+	}
 
-   ShowWindow(hWnd, nCmdShow);
-   UpdateWindow(hWnd);
+	ShowWindow(hWnd,nCmdShow);
+	UpdateWindow(hWnd);
 
-   return TRUE;
+	return TRUE;
 }
 
 
 
 
-HRESULT BasicFileOpen(HWND hWnd,std::wstring &File)
+HRESULT BasicFileOpen(HWND hWnd,std::wstring& File)
 {
-    WCHAR szFile[260];       // buffer for file name
+	WCHAR szFile[260];       // buffer for file name
 	OPENFILENAME ofn;
 
-    HRESULT hr=S_FALSE;
+	HRESULT hr=S_FALSE;
 
-    // Initialize OPENFILENAME
-    ZeroMemory(&ofn, sizeof(ofn));
-    ofn.lStructSize = sizeof(ofn);
-    ofn.hwndOwner = hWnd;
-    ofn.lpstrFile = szFile;
-    // Set lpstrFile[0] to '\0' so that GetOpenFileName does not 
-    // use the contents of szFile to initialize itself.
-    ofn.lpstrFile[0] = '\0';
-    ofn.nMaxFile = MAXFILENAME;
-    ofn.lpstrFilter = _TEXT("DSN\0*.DSN\0");
-    ofn.nFilterIndex = 1;
-    ofn.lpstrFileTitle = NULL;
-    ofn.nMaxFileTitle = 0;
-    ofn.lpstrInitialDir = NULL;
-    ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
+	// Initialize OPENFILENAME
+	ZeroMemory(&ofn,sizeof(ofn));
+	ofn.lStructSize=sizeof(ofn);
+	ofn.hwndOwner=hWnd;
+	ofn.lpstrFile=szFile;
+	// Set lpstrFile[0] to '\0' so that GetOpenFileName does not 
+	// use the contents of szFile to initialize itself.
+	ofn.lpstrFile[0]='\0';
+	ofn.nMaxFile=MAXFILENAME;
+	ofn.lpstrFilter=_TEXT("DSN\0*.DSN\0");
+	ofn.nFilterIndex=1;
+	ofn.lpstrFileTitle=NULL;
+	ofn.nMaxFileTitle=0;
+	ofn.lpstrInitialDir=NULL;
+	ofn.Flags=OFN_PATHMUSTEXIST|OFN_FILEMUSTEXIST;
 
-    // Display the Open dialog box. 
+	// Display the Open dialog box. 
 
 	if(GetOpenFileName(&ofn))
 	{
@@ -353,7 +353,7 @@ HRESULT BasicFileSave(HWND hWnd,std::wstring& File)
 //
 
 
-LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+LRESULT CALLBACK WndProc(HWND hWnd,UINT message,WPARAM wParam,LPARAM lParam)
 {
 	LRESULT hr=-1;
 
@@ -388,194 +388,194 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	}
 
 
-    switch (message)
-    {
-		case WM_COMMAND:
+	switch(message)
+	{
+	case WM_COMMAND:
+	{
+		int wmId=LOWORD(wParam);
+		// Parse the menu selections:
+		switch(wmId)
 		{
-			int wmId=LOWORD(wParam);
-			// Parse the menu selections:
-			switch(wmId)
-			{
-			case IDM_ABOUT:
-				DialogBox(hInst,MAKEINTRESOURCE(IDD_ABOUTBOX),hWnd,About);
-				break;
-
-			case ID_FILE_OPENFILE:
-				if(MSWDSNFileIn)
-				{
-					delete MSWDSNFileIn;
-
-					if(MSWBreadBoardsIn!=0)
-					{
-						delete MSWBreadBoardsIn;
-					}
-
-					MSWDSNFileIn=0;
-					ViewMode=PCB;
-				}
-
-				hr=BasicFileOpen(hWnd,szFile);
-
-				if(hr==S_OK)
-				{
-					try
-					{
-						MSWDSNFileIn=new MSWDSNFile(szFile, *Tools);
-						ViewMode=PCB;
-					}
-					catch(int e)
-					{
-						switch(e)
-						{
-						case DSNExceptions::FILEOPENFAILED:
-							cout<<"An exception occurred. Exception Nr. "<<e<<'\n';
-							break;
-
-						case DSNExceptions::FORMATERROR:
-							cout<<"An exception occurred. Exception Nr. "<<e<<'\n';
-							break;
-
-						default:
-							cout<<"An exception occurred. Exception Nr. "<<e<<'\n';
-							break;
-						}
-					}
-				}
-
-				RedrawWindow(hWnd,NULL,NULL,RDW_ERASE|RDW_FRAME|RDW_INVALIDATE|RDW_ALLCHILDREN);
-				break;
-
-
-			case ID_FILE_SAVEFILE:
-				try
-				{
-					wstring temp=L"";
-				
-					MSWDSNFileIn->FileOut(temp);
-				}
-				catch(int e)
-				{
-					switch(e)
-					{
-					case DSNExceptions::FILEOPENFAILED:
-						cout<<"An exception occurred. Exception Nr. "<<e<<'\n';
-						break;
-
-					case DSNExceptions::FORMATERROR:
-						cout<<"An exception occurred. Exception Nr. "<<e<<'\n';
-						break;
-
-					default:
-						cout<<"An exception occurred. Exception Nr. "<<e<<'\n';
-						break;
-					}
-				}
-
-
-				RedrawWindow(hWnd,NULL,NULL,RDW_ERASE|RDW_FRAME|RDW_INVALIDATE|RDW_ALLCHILDREN);
-
-				break;
-
-			case ID_FILE_SAVEAS:
-				hr=BasicFileSave(hWnd,szFile);
-
-				try
-				{
-					MSWDSNFileIn->FileOut(szFile);
-				}
-				catch(int e)
-				{
-					switch(e)
-					{
-					case DSNExceptions::FILEOPENFAILED:
-						cout<<"An exception occurred. Exception Nr. "<<e<<'\n';
-						break;
-
-					case DSNExceptions::FORMATERROR:
-						cout<<"An exception occurred. Exception Nr. "<<e<<'\n';
-						break;
-
-					default:
-						cout<<"An exception occurred. Exception Nr. "<<e<<'\n';
-						break;
-					}
-				}
-
-
-				RedrawWindow(hWnd,NULL,NULL,RDW_ERASE|RDW_FRAME|RDW_INVALIDATE|RDW_ALLCHILDREN);
-				break;
-
-			case ID_VIEW_BREAD:
-				MSWBreadBoardsIn=new MSWBreadBoards(*MSWDSNFileIn, *Tools);
-				ViewMode=BREADBOARD;
-				RedrawWindow(hWnd,NULL,NULL,RDW_ERASE|RDW_FRAME|RDW_INVALIDATE|RDW_ALLCHILDREN);
-				break;
-
-			case ID_VIEW_PCB:
-				ViewMode=PCB;
-				RedrawWindow(hWnd,NULL,NULL,RDW_ERASE|RDW_FRAME|RDW_INVALIDATE|RDW_ALLCHILDREN);
-				break;
-
-			case IDM_EXIT:
-				DestroyWindow(hWnd);
-				break;
-
-			case ID_FILE_PRINT:
-				OnPrint(hWnd);
-				break;
-
-			default:
-				return DefWindowProc(hWnd,message,wParam,lParam);
-			}
-		}
-		case WM_PAINT:
-			{
-				PAINTSTRUCT ps;
-				HDC hdc = BeginPaint(hWnd, &ps);
-
-				OnPaint(hdc);
-
-				// TODO: Add any drawing code that uses hdc here...
-				EndPaint(hWnd, &ps);
-			}
+		case IDM_ABOUT:
+			DialogBox(hInst,MAKEINTRESOURCE(IDD_ABOUTBOX),hWnd,About);
 			break;
-		case WM_DESTROY:
+
+		case ID_FILE_OPENFILE:
 			if(MSWDSNFileIn)
 			{
 				delete MSWDSNFileIn;
+
+				if(MSWBreadBoardsIn!=0)
+				{
+					delete MSWBreadBoardsIn;
+				}
+
 				MSWDSNFileIn=0;
+				ViewMode=PCB;
 			}
-			if(MSWBreadBoardsIn!=0)
+
+			hr=BasicFileOpen(hWnd,szFile);
+
+			if(hr==S_OK)
 			{
-				delete MSWBreadBoardsIn;
-				MSWBreadBoardsIn=0;
+				try
+				{
+					MSWDSNFileIn=new MSWDSNFile(szFile,*Tools);
+					ViewMode=PCB;
+				}
+				catch(int e)
+				{
+					switch(e)
+					{
+					case DSNExceptions::FILEOPENFAILED:
+						cout<<"An exception occurred. Exception Nr. "<<e<<'\n';
+						break;
+
+					case DSNExceptions::FORMATERROR:
+						cout<<"An exception occurred. Exception Nr. "<<e<<'\n';
+						break;
+
+					default:
+						cout<<"An exception occurred. Exception Nr. "<<e<<'\n';
+						break;
+					}
+				}
 			}
-			PostQuitMessage(0);
+
+			RedrawWindow(hWnd,NULL,NULL,RDW_ERASE|RDW_FRAME|RDW_INVALIDATE|RDW_ALLCHILDREN);
 			break;
+
+
+		case ID_FILE_SAVEFILE:
+			try
+			{
+				wstring temp=L"";
+
+				MSWDSNFileIn->FileOut(temp);
+			}
+			catch(int e)
+			{
+				switch(e)
+				{
+				case DSNExceptions::FILEOPENFAILED:
+					cout<<"An exception occurred. Exception Nr. "<<e<<'\n';
+					break;
+
+				case DSNExceptions::FORMATERROR:
+					cout<<"An exception occurred. Exception Nr. "<<e<<'\n';
+					break;
+
+				default:
+					cout<<"An exception occurred. Exception Nr. "<<e<<'\n';
+					break;
+				}
+			}
+
+
+			RedrawWindow(hWnd,NULL,NULL,RDW_ERASE|RDW_FRAME|RDW_INVALIDATE|RDW_ALLCHILDREN);
+
+			break;
+
+		case ID_FILE_SAVEAS:
+			hr=BasicFileSave(hWnd,szFile);
+
+			try
+			{
+				MSWDSNFileIn->FileOut(szFile);
+			}
+			catch(int e)
+			{
+				switch(e)
+				{
+				case DSNExceptions::FILEOPENFAILED:
+					cout<<"An exception occurred. Exception Nr. "<<e<<'\n';
+					break;
+
+				case DSNExceptions::FORMATERROR:
+					cout<<"An exception occurred. Exception Nr. "<<e<<'\n';
+					break;
+
+				default:
+					cout<<"An exception occurred. Exception Nr. "<<e<<'\n';
+					break;
+				}
+			}
+
+
+			RedrawWindow(hWnd,NULL,NULL,RDW_ERASE|RDW_FRAME|RDW_INVALIDATE|RDW_ALLCHILDREN);
+			break;
+
+		case ID_VIEW_BREAD:
+			MSWBreadBoardsIn=new MSWBreadBoards(*MSWDSNFileIn,*Tools);
+			ViewMode=BREADBOARD;
+			RedrawWindow(hWnd,NULL,NULL,RDW_ERASE|RDW_FRAME|RDW_INVALIDATE|RDW_ALLCHILDREN);
+			break;
+
+		case ID_VIEW_PCB:
+			ViewMode=PCB;
+			RedrawWindow(hWnd,NULL,NULL,RDW_ERASE|RDW_FRAME|RDW_INVALIDATE|RDW_ALLCHILDREN);
+			break;
+
+		case IDM_EXIT:
+			DestroyWindow(hWnd);
+			break;
+
+		case ID_FILE_PRINT:
+			OnPrint(hWnd);
+			break;
+
 		default:
-			return DefWindowProc(hWnd, message, wParam, lParam);
-    }
-    return 0;
+			return DefWindowProc(hWnd,message,wParam,lParam);
+		}
+	}
+	case WM_PAINT:
+	{
+		PAINTSTRUCT ps;
+		HDC hdc=BeginPaint(hWnd,&ps);
+
+		OnPaint(hdc);
+
+		// TODO: Add any drawing code that uses hdc here...
+		EndPaint(hWnd,&ps);
+	}
+	break;
+	case WM_DESTROY:
+		if(MSWDSNFileIn)
+		{
+			delete MSWDSNFileIn;
+			MSWDSNFileIn=0;
+		}
+		if(MSWBreadBoardsIn!=0)
+		{
+			delete MSWBreadBoardsIn;
+			MSWBreadBoardsIn=0;
+		}
+		PostQuitMessage(0);
+		break;
+	default:
+		return DefWindowProc(hWnd,message,wParam,lParam);
+	}
+	return 0;
 }
 
 // Message handler for about box.
-INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+INT_PTR CALLBACK About(HWND hDlg,UINT message,WPARAM wParam,LPARAM lParam)
 {
-    UNREFERENCED_PARAMETER(lParam);
-    switch (message)
-    {
-    case WM_INITDIALOG:
-        return (INT_PTR)TRUE;
+	UNREFERENCED_PARAMETER(lParam);
+	switch(message)
+	{
+	case WM_INITDIALOG:
+		return (INT_PTR)TRUE;
 
-    case WM_COMMAND:
-        if (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL)
-        {
-            EndDialog(hDlg, LOWORD(wParam));
-            return (INT_PTR)TRUE;
-        }
-        break;
-    }
-    return (INT_PTR)FALSE;
+	case WM_COMMAND:
+		if(LOWORD(wParam)==IDOK||LOWORD(wParam)==IDCANCEL)
+		{
+			EndDialog(hDlg,LOWORD(wParam));
+			return (INT_PTR)TRUE;
+		}
+		break;
+	}
+	return (INT_PTR)FALSE;
 }
 
 
