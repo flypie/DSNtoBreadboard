@@ -9,6 +9,7 @@ using namespace std;
 #include <string>
 #include <vector>
 
+#include "Entity.h"
 #include "Vertex.h"
 #include "DSNPen.h"
 #include "DSNTools.h"
@@ -84,7 +85,7 @@ typedef struct
 	wstring pid; //When Number=-1 yje ise his string
 } Pin;
 
-class DSNFile
+class DSNFile : public Entity
 {
 public:
 	DSNFile();
@@ -93,6 +94,9 @@ public:
 	DSNFile(std::wstring &FileName, DSNTools &ToolsIn);
 
 	DSNReturn FileOut(wstring &File);
+
+
+
 
 protected:
 	DSNReturn Parse();
@@ -104,7 +108,6 @@ protected:
 	void DrawComponentOfType(const Element& Part,const Element& Image);
 	void DrawPCBOutline(const Element& path);
 	void DrawNets(std::vector<Pin> PinList);
-
 
 	void Paint();
 	
@@ -119,13 +122,9 @@ protected:
 	Element *Get(wstring a,wstring b,wstring c);
 
 	friend class BreadBoards;
-
-	double GetConvertion() { return convertion; };
-	double ToMM(double dimension) { return dimension/convertion; };
-
 private:
 	DSNTools *Tools;
-	double convertion;
+
 };
 
 

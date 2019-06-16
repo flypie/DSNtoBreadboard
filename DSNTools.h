@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Entity.h"
 #include "DSNPen.h"
 #include "Vertex.h"
 #include <string>
@@ -26,13 +27,12 @@ public:
 		return FileDir;
 	};
 
-	virtual void DrawLine(DSNPen& pen,vertex& a,vertex& b)=0;
-	virtual void DrawCircle(DSNPen& pen,vertex& a,double radius)=0;
-	virtual	void DrawRectangle(DSNPen& pen,vertex& a,vertex& b)=0;
-	virtual void DrawString(DSNPen& PenIn,vertex& xy,vertex& wh,std::wstring& b)=0;
+	virtual void DrawLine(Entity& Ent,DSNPen& pen,vertex& a,vertex& b)=0;
+	virtual void DrawCircle(Entity& Ent,DSNPen& pen,vertex& a,double radius)=0;
+	virtual	void DrawRectangle(Entity& Ent,DSNPen& pen,vertex& a,vertex& b)=0;
+	virtual void DrawString(Entity& Ent,DSNPen& PenIn,vertex& xy,vertex& wh,std::wstring& b)=0;
 
-	double	gscalefromfile,gxofffromfile,gyofffromfile;
-	double	gfilewidth,gfileheight;
+
 
 private:
 	FILEXDIRECTION FileDir;

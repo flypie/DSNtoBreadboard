@@ -34,12 +34,16 @@ INT_PTR CALLBACK    About(HWND,UINT,WPARAM,LPARAM);
 
 
 MSWDSNFile* MSWDSNFileIn=0;
-
 MSWBreadBoards* MSWBreadBoardsIn=0;
-
-MSWTools* Tools;
+MSWTools* Tools=0;
 
 #define	MAXFILENAME	260
+
+
+HWND g_hWnd;
+
+double	g_WinWidth=0;
+double	g_WinHeight=0;
 
 
 typedef enum
@@ -48,6 +52,9 @@ typedef enum
 } VIEWMODES;
 
 VIEWMODES ViewMode=NONE;
+
+
+#define Inch2MM	25.4
 
 
 int		DListLen;
@@ -63,6 +70,50 @@ void AddToLog(const std::wstring FileName)
 	*DList[DListLen++]+=FileName;
 }
 
+
+
+static void
+CustomHandleVScroll(HWND hwnd,int iAction)
+{
+	int nPos;
+	int nOldPos;
+	SCROLLINFO si;
+
+	// Get current scrollbar state:
+	si.cbSize=sizeof(SCROLLINFO);
+	si.fMask=SIF_RANGE|SIF_PAGE|SIF_POS|SIF_TRACKPOS;
+	GetScrollInfo(hwnd,SB_VERT,&si);
+
+	nOldPos=si.nPos;
+
+	// Compute new nPos.
+	// Note we do not care where nPos falls between nMin and nMax. See below.
+	switch(iAction)
+	{
+	case SB_TOP:            nPos=si.nMin; break;
+	case SB_BOTTOM:         nPos=si.nMax; break;
+	case SB_LINEUP:         nPos=si.nPos-1; break;
+	case SB_LINEDOWN:       nPos=si.nPos+1; break;
+	case SB_PAGEUP:         nPos=si.nPos-100; break;
+	case SB_PAGEDOWN:       nPos=si.nPos+100; break;
+	case SB_THUMBTRACK:     nPos=si.nTrackPos; break;
+	default:
+	case SB_THUMBPOSITION:  nPos=si.nPos; break;
+	}
+
+	// Update the scrollbar state (nPos) and repaint it. The function ensures
+	// the nPos does not fall out of the allowed range between nMin and nMax
+	// hence we ask for the corrected nPos again.
+	SetScrollPos(hwnd,SB_VERT,nPos,TRUE);
+	nPos=GetScrollPos(hwnd,SB_VERT);
+
+	// Refresh the control (repaint it to reflect the new nPos). Note we
+	// here multiply with some unspecified scrolling unit which specifies
+	// amount of pixels corresponding to the 1 scrolling unit.
+	// We will discuss ScrollWindowEx() more later in the article.
+//	ScrollWindowEx(hwnd,0,(nOldPos-nPos)*scrollUnit
+//		NULL,NULL,NULL,NULL,SW_ERASE|SW_INVALIDATE);
+}
 
 
 HDC GetPrinterDC(HWND Hwnd)
@@ -104,7 +155,9 @@ VOID OnPaint(HDC hdc)
 		case BREADBOARD:
 			if(MSWBreadBoardsIn!=0)
 			{
-				MSWBreadBoardsIn->Paint(hdc);
+				double nPos=GetScrollPos(g_hWnd,SB_VERT);
+
+				MSWBreadBoardsIn->Paint(hdc,nPos,100.0);
 			}
 			break;
 		}
@@ -125,8 +178,6 @@ VOID OnPaint(HDC hdc)
 			);
 		}
 	}
-
-
 }
 
 #define NUM 1000
@@ -253,16 +304,18 @@ BOOL InitInstance(HINSTANCE hInstance,int nCmdShow)
 {
 	hInst=hInstance; // Store instance handle in our global variable
 
-	HWND hWnd=CreateWindowW(szWindowClass,szTitle,WS_OVERLAPPEDWINDOW,
+	g_hWnd=CreateWindowW(szWindowClass,szTitle,WS_OVERLAPPEDWINDOW|WS_HSCROLL|WS_VSCROLL,
 		CW_USEDEFAULT,0,CW_USEDEFAULT,0,nullptr,nullptr,hInstance,nullptr);
 
-	if(!hWnd)
+	if(!g_hWnd)
 	{
 		return FALSE;
 	}
 
-	ShowWindow(hWnd,nCmdShow);
-	UpdateWindow(hWnd);
+	EnableScrollBar(g_hWnd,SB_BOTH,ESB_ENABLE_BOTH);
+
+	ShowWindow(g_hWnd,nCmdShow);
+	UpdateWindow(g_hWnd);
 
 	return TRUE;
 }
@@ -500,8 +553,6 @@ LRESULT CALLBACK WndProc(HWND hWnd,UINT message,WPARAM wParam,LPARAM lParam)
 					break;
 				}
 			}
-
-
 			RedrawWindow(hWnd,NULL,NULL,RDW_ERASE|RDW_FRAME|RDW_INVALIDATE|RDW_ALLCHILDREN);
 			break;
 
@@ -528,6 +579,14 @@ LRESULT CALLBACK WndProc(HWND hWnd,UINT message,WPARAM wParam,LPARAM lParam)
 			return DefWindowProc(hWnd,message,wParam,lParam);
 		}
 	}
+	case WM_VSCROLL:
+		CustomHandleVScroll(hWnd,LOWORD(wParam));
+		break;
+
+	case WM_HSCROLL:
+		printf("dd\n");
+		break;
+
 	case WM_PAINT:
 	{
 		PAINTSTRUCT ps;
@@ -545,6 +604,7 @@ LRESULT CALLBACK WndProc(HWND hWnd,UINT message,WPARAM wParam,LPARAM lParam)
 			delete MSWDSNFileIn;
 			MSWDSNFileIn=0;
 		}
+
 		if(MSWBreadBoardsIn!=0)
 		{
 			delete MSWBreadBoardsIn;
@@ -552,6 +612,14 @@ LRESULT CALLBACK WndProc(HWND hWnd,UINT message,WPARAM wParam,LPARAM lParam)
 		}
 		PostQuitMessage(0);
 		break;
+
+	case WM_SIZE:
+
+		g_WinWidth=(double)LOWORD(lParam);
+		g_WinHeight=(double)HIWORD(lParam);
+
+		break;
+
 	default:
 		return DefWindowProc(hWnd,message,wParam,lParam);
 	}

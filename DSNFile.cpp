@@ -33,23 +33,23 @@ DSNFile::DSNFile(std::wstring& FileName,DSNTools& ToolsIn)
 	{
 		if(structure->Body==L"inch")
 		{
-			convertion=1/25.4;
+			conversion=1/25.4;
 		}
 		else if(structure->Body==L"mil")
 		{
-			convertion=39.37;
+			conversion=39.37;
 		}
 		else if(structure->Body==L"cm")
 		{
-			convertion=0.1;
+			conversion=0.1;
 		}
 		else if(structure->Body==L"mm")
 		{
-			convertion=1;
+			conversion=1;
 		}
 		else if(structure->Body==L"um")
 		{
-			convertion=1000;
+			conversion=1000;
 		}
 		else
 		{
@@ -274,11 +274,11 @@ void DSNFile::DrawComponentImage(const Element&Image,vertex inxy,double angle)
 						vertices.push_back(xy+inxy);
 					}
 
-					pen.SetWidth(linewidth/Tools->gscalefromfile);
+					pen.SetWidth(ToMM(linewidth));
 
 					for(unsigned int i=0; i<vertices.size()-1; i++)
 					{
-						Tools->DrawLine(pen,vertices[i],vertices[i+1]);
+						Tools->DrawLine(*this,pen,vertices[i],vertices[i+1]);
 					}
 				}
 			}
@@ -349,7 +349,7 @@ void DSNFile::DrawComponentImage(const Element&Image,vertex inxy,double angle)
 									temp.x=inxy.x+temp1.x;
 									temp.y=inxy.y+temp1.y;
 
-									Tools->DrawCircle(pen,temp,radius);
+									Tools->DrawCircle(*this,pen,temp,radius);
 								}
 								else if(wstringicmp(Shape.Name,wstring(L"rect"))==0)
 								{
@@ -384,7 +384,7 @@ void DSNFile::DrawComponentImage(const Element&Image,vertex inxy,double angle)
 									vertex tempa=inxy+temp1+temp2;
 									vertex tempb=inxy+temp1+temp3;
 
-									Tools->DrawRectangle(pen,tempa,tempb);
+									Tools->DrawRectangle(*this,pen,tempa,tempb);
 								}
 								else if(wstringicmp(Shape.Name,wstring(L"path"))==0)
 								{
@@ -405,7 +405,7 @@ void DSNFile::DrawComponentImage(const Element&Image,vertex inxy,double angle)
 									linewidth=stoi(Shape.Body.substr(curfield,nextdelimter-curfield));
 									curfield=Shape.Body.find_first_not_of(' ',nextdelimter);
 
-									pen.SetWidth(linewidth/Tools->gscalefromfile);
+									pen.SetWidth(ToMM(linewidth));
 
 									while(nextdelimter!=wstring::npos)
 									{
@@ -428,14 +428,14 @@ void DSNFile::DrawComponentImage(const Element&Image,vertex inxy,double angle)
 									if(vertices.size()==2&&(vertices[0].x==vertices[1].x)&&(vertices[0].y==vertices[1].y))
 									{
 										pen.SetColour(CYAN);
-										Tools->DrawCircle(pen,vertices[0],linewidth);
+										Tools->DrawCircle(*this,pen,vertices[0],linewidth);
 									}
 									else
 									{
 										pen.SetColour(MAGENTA);
 										for(unsigned int i=0; i<vertices.size()-1; i++)
 										{
-											Tools->DrawLine(pen,vertices[i],vertices[i+1]);
+											Tools->DrawLine(*this,pen,vertices[i],vertices[i+1]);
 										}
 									}
 								}
@@ -495,7 +495,7 @@ void DSNFile::DrawComponentImage(const Element&Image,vertex inxy,double angle)
 					temp.x=inxy.x+offset.x;
 					temp.y=inxy.y+offset.y;
 
-					Tools->DrawCircle(Pen,temp,radius);
+					Tools->DrawCircle(*this,Pen,temp,radius);
 				}
 				else
 				{
@@ -598,25 +598,16 @@ void DSNFile::DrawPCBOutline(const Element& path)
 		}
 	}
 
-	Tools->gfilewidth=lr.x-ul.x;
-	Tools->gxofffromfile=ul.x;
-	Tools->gfileheight=(ul.y-lr.y);
-	Tools->gyofffromfile=lr.y;
+	gfilewidth=lr.x-ul.x;
+	gxofffromfile=ul.x;
+	gfileheight=(ul.y-lr.y);
+	gyofffromfile=lr.y;
 
-	if(Tools->gfilewidth>Tools->gfileheight)
-	{
-		Tools->gscalefromfile=Tools->gfilewidth;
-	}
-	else
-	{
-		Tools->gscalefromfile=Tools->gfileheight;
-	}
-
-	Pen.SetWidth(1.0/Tools->gscalefromfile);
+	Pen.SetWidth(1.0);
 
 	for(unsigned int i=0; i<vertices.size()-1; i++)
 	{
-		Tools->DrawLine(Pen,vertices[i],vertices[i+1]);
+		Tools->DrawLine(*this,Pen,vertices[i],vertices[i+1]);
 	}
 }
 
@@ -629,11 +620,6 @@ void DSNFile::DrawNets(std::vector<Pin> PinList)
 
 	for(Pin PinPad:PinList)
 	{
-		if(PinPad.Device==L"Z5-6"&&PinList.size()==2)
-		{
-			printf("ded\n");
-
-		}
 		placements=Root.FindSub(L"placement");
 		if(placements)
 		{
@@ -754,7 +740,7 @@ void DSNFile::DrawNets(std::vector<Pin> PinList)
 
 		for(unsigned int i=0; i<thisnet.size()-1; i++)
 		{
-			Tools->DrawLine(pen,thisnet[i],thisnet[i+1]);
+			Tools->DrawLine(*this,pen,thisnet[i],thisnet[i+1]);
 		}
 	}
 	else

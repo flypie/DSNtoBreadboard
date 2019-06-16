@@ -17,9 +17,11 @@
 
 
 
+#include "entity.h"
+
 #include "DSNTools.h"
 
-class BreadBoard
+class BreadBoard : public Entity
 {
 public:
 
@@ -33,7 +35,6 @@ public:
 
 	const void Paint();
 
-//
 	
 public:
 	static const double BoardWidth;
@@ -44,6 +45,7 @@ public:
 
 	static const double CenterGap;
 	static const double PinPitch;
+
 
 protected:
 	DSNTools* Tools;

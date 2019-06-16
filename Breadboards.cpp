@@ -38,19 +38,6 @@ BreadBoards::BreadBoards(DSNFile& PCBIn,DSNTools& ToolsIn)
 	PCB=&PCBIn;
 	Tools=&ToolsIn;
 
-	Tools->gfilewidth=100;
-	Tools->gxofffromfile=0;
-	Tools->gfileheight=100;
-	Tools->gyofffromfile=0;
-
-	if(Tools->gfilewidth>Tools->gfileheight)
-	{
-		Tools->gscalefromfile=Tools->gfilewidth;
-	}
-	else
-	{
-		Tools->gscalefromfile=Tools->gfileheight;
-	}
 
 	placements=PCBIn.Root.FindSub(L"placement");
 	if(placements)
@@ -142,7 +129,6 @@ BreadBoards::BreadBoards(DSNFile& PCBIn,DSNTools& ToolsIn)
 							{
 								Comp.lr.y=pinoffset.y;
 							}
-
 						}
 					}
 					TotalPinSideCount+=((Comp.PinCount+1)/2);
@@ -166,7 +152,7 @@ BreadBoards::~BreadBoards()
 };
 
 
-void BreadBoards::Paint()
+void BreadBoards::Paint(double Start,double Length)
 {
 	double voffset=0;
 

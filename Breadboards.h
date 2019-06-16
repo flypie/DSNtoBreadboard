@@ -14,8 +14,13 @@ public:
 	~BreadBoards();
 	BreadBoards(DSNFile& a, DSNTools &b);
 
-	void Paint();
+	void Paint(double Start,double Length);
 	void Print() {};
+	
+	double GetTotoalHeightmm()
+	{
+		return Boards.size()*BreadBoard::BoardHeight;
+	};
 
 protected:
 

@@ -10,6 +10,7 @@ using namespace Gdiplus;
 
 #include <string>
 
+#include "Entity.h"
 #include "DSNTools.h"
 #include "DSNPen.h"
 #include "Vertex.h"
@@ -25,13 +26,13 @@ public:
 
 	MSWTools();
 
-	void DrawLine(DSNPen& pen,vertex& a,vertex& b);
-	void DrawCircle(DSNPen& pen,vertex& a,double radius);
-	void DrawRectangle(DSNPen& pen,vertex& a,vertex& b);
-	void DrawString(DSNPen& PenIn,vertex& xy,vertex& wh,std::wstring&b);
+	void DrawLine(Entity &Ent,DSNPen& pen,vertex& a,vertex& b);
+	void DrawCircle(Entity& Ent,DSNPen& pen,vertex& a,double radius);
+	void DrawRectangle(Entity& Ent,DSNPen& pen,vertex& a,vertex& b);
+	void DrawString(Entity& Ent,DSNPen& PenIn,vertex& xy,vertex& wh,std::wstring&b);
 
 	Graphics* graphics;
 
-	double gscaletodevice;
+//	double gscaletodevice;
 };
 

@@ -15,7 +15,7 @@ public:
 	MSWBreadBoards(DSNFile& , MSWTools &Tools);
 
 
-	void Paint(HDC hdc);
+	void Paint(HDC hdc,double Start,double Length);
 	void Print(HDC hdc) {};
 
 protected:
